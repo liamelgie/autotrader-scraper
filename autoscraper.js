@@ -1,3 +1,4 @@
+const phantom = require('phantom')
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
