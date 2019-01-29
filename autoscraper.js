@@ -24,5 +24,28 @@ class Ad {
     this.location = this.$('.seller-location').text().replace(/\n/g, '').trim()
     this.img = this.$('img').attr('src')
   }
+
+  get() {
+    return {
+      price: this.price,
+      title: this.title,
+      keySpecs: this.keySpecs,
+      description: this.description,
+      location: this.location,
+      img: this.img
+    }
+  }
+
+  json() {
+    return JSON.stringify({
+      price: this.price,
+      title: this.title,
+      keySpecs: this.keySpecs,
+      description: this.description,
+      location: this.location,
+      img: this.img
+    })
+  }
 }
+
 module.exports = AutoTraderScraper
