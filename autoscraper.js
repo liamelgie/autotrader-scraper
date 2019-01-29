@@ -1,4 +1,5 @@
-const phantom = require('phantom')
+const Nightmare = require('nightmare')
+const nightmare = Nightmare({ show: false,  pollInterval: 20 })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
@@ -21,6 +22,21 @@ class AutoTraderScraper {
     }).get()
     return listings
   }
+
+  async fetchAdvert(url) {
+    let content = await nightmare
+      .goto(url)
+      .wait('div.fpa__wrapper')
+      .evaluate(function() {
+        return document.body.innerHTML
+      }).end()
+    const $ = cheerio.load(content)
+    let fpa = $('article.fpa').find('div.fpa__wrapper')
+    console.log(fpa.find('.advert-price__cash-price').text())
+    let advert = new Advert($('article.fpa').find('div.fpa__wrapper').html())
+    return advert.get()
+  }
+}
 
 class Advert {
   constructor(node) {
