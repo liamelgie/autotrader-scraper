@@ -1,5 +1,5 @@
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ show: false,  pollInterval: 20 })
+const nightmare = Nightmare({ show: false,  pollInterval: 20, width: 1400 })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
@@ -24,17 +24,32 @@ class AutoTraderScraper {
   }
 
   async fetchAdvert(url) {
-    let content = await nightmare
+    const used = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? false : true
+    if (used) {
+      let content = await nightmare
+        .goto(url)
+        .wait('div.fpa__wrapper')
+        .wait('#about-seller > p > button')
+        .click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button')
+        .click('#about-seller > p > button')
+        .evaluate(function() {
+          return document.body.innerHTML
+        }).end()
+      const $ = cheerio.load(content)
+      let advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), used)
+      return advert.get()
+    } else {
+      let content = await nightmare
       .goto(url)
-      .wait('div.fpa__wrapper')
+      .wait('.non-fpa-stock-page')
+      .wait('.dealer-details--full')
       .evaluate(function() {
         return document.body.innerHTML
       }).end()
-    const $ = cheerio.load(content)
-    let fpa = $('article.fpa').find('div.fpa__wrapper')
-    console.log(fpa.find('.advert-price__cash-price').text())
-    let advert = new Advert($('article.fpa').find('div.fpa__wrapper').html())
-    return advert.get()
+      const $ = cheerio.load(content)
+      let advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), used)
+      return advert.get()
+    }
   }
 }
 
