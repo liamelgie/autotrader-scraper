@@ -1,8 +1,27 @@
+const cheerio = require('cheerio')
+const fetch = require('node-fetch')
+
 class AutoTraderScraper {
   constructor() {
 
   }
+
+  async fetchResults(url) {
+    let content = await fetch(url)
+      .then(res => res.text())
+      .then((body) => {
+        return body
+      })
+    if (!content) return false
+    const $ = cheerio.load(content)
+    const numOfResults = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
+    let results = $('li.search-page__result').map((i, el) => {
+      return new Ad(el).json()
+    }).get()
+    return results
+  }
 }
+
 class Ad {
   constructor(node) {
     if (!node) return null
