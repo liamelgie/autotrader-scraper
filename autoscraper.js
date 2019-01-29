@@ -22,6 +22,24 @@ class AutoTraderScraper {
     return listings
   }
 
+class Advert {
+  constructor(node) {
+    if (!node) return null
+    this.$ = cheerio.load(node)
+    this.price = this.$('.advert-price__cash-price').text()
+    this.title = this.$('.advert-heading__title').text()
+    this.condition = this.$('.advert-heading__condition').text()
+    this.sellerName = this.$('.seller-name').text()
+    this.sellerLocation = this.$('.seller-locations__town').text()
+    this.sellerNumbers = this.$('.seller-numbers').text()
+    this.ownerRating = this.$('.review-links__rating').text()
+    this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+      return this.$(el).text().replace(/\n/g, '').trim()
+    }).get()
+  }
+
+  get() {
+    return this
   }
 }
 
