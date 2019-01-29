@@ -16,7 +16,7 @@ class AutoTraderScraper {
     const $ = cheerio.load(content)
     const numOfResults = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
     let results = $('li.search-page__result').map((i, el) => {
-      return new Ad(el).json()
+      return new Ad(el).get()
     }).get()
     return results
   }
