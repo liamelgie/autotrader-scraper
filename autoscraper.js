@@ -72,6 +72,7 @@ class Advert {
       this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
+      // TODO: Add retrieval of the 'details' section of the ad
       this.seller = {
         name: this.$('.seller-name__link').first().text(),
         location: this.$('.seller-locations__town').text(),
@@ -88,6 +89,7 @@ class Advert {
       this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
+      // TODO: Add retrieval of the 'details' section of the ad
       this.review = {
         score: this.$('.review-holder').find('.starRating__number').text(),
         blurb: this.$('.review-holder').find('.atc-type-picanto').text(),
