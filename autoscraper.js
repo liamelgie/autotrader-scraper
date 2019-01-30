@@ -24,19 +24,19 @@ class AutoTraderScraper {
   }
 
   async fetchAdvert(url) {
-    const used = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? false : true
-    if (used) {
+    const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
+    if (condition === 'Used') {
       let content = await nightmare
         .goto(url)
         .wait('div.fpa__wrapper')
-        .wait('#about-seller > p > button')
+        // .wait('#about-seller > p > button')
         .click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button')
-        .click('#about-seller > p > button')
+        // .click('#about-seller > p > button')
         .evaluate(function() {
           return document.body.innerHTML
         }).end()
       const $ = cheerio.load(content)
-      let advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), used)
+      let advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
       return advert.get()
     } else {
       let content = await nightmare
@@ -47,30 +47,96 @@ class AutoTraderScraper {
         return document.body.innerHTML
       }).end()
       const $ = cheerio.load(content)
-      let advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), used)
+      let advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
       return advert.get()
     }
   }
 }
 
 class Advert {
-  constructor(node) {
+  constructor(node, condition) {
     if (!node) return null
     this.$ = cheerio.load(node)
-    this.price = this.$('.advert-price__cash-price').text()
-    this.title = this.$('.advert-heading__title').text()
-    this.condition = this.$('.advert-heading__condition').text()
-    this.sellerName = this.$('.seller-name').text()
-    this.sellerLocation = this.$('.seller-locations__town').text()
-    this.sellerNumbers = this.$('.seller-numbers').text()
-    this.ownerRating = this.$('.review-links__rating').text()
-    this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
-      return this.$(el).text().replace(/\n/g, '').trim()
-    }).get()
+    this.condition = condition
+    if (condition === 'Used') {
+      this.title = this.$('.advert-heading__title').text()
+      this.price = this.$('.advert-price__cash-price').text()
+      this.description = this.$('.fpa__description').text()
+      // TODO: Switch rating to object with autotrader and owner ratings
+      this.rating = this.$('.starRating__number').text()
+      this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.seller = {
+        name: this.$('.seller-name__link').first().text(),
+        location: this.$('.seller-locations__town').text(),
+        number: this.$('.seller-numbers').text(),
+        rating: this.$('.review-links__rating').first().text(),
+        description: this.$('#about-seller > p').text()
+      }
+    } else {
+      this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
+      this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
+      this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.review = {
+        score: this.$('.review-holder').find('.starRating__number').text(),
+        blurb: this.$('.review-holder').find('.atc-type-picanto').text(),
+        pros: this.$('.review-holder').find('.pro-list').find('li').map((i, el) => {
+          return this.$(el).text().replace(/\n/g, '').trim()
+        }).get(),
+        cons: this.$('.review-holder').find('.con-list').find('li').map((i, el) => {
+          return this.$(el).text().replace(/\n/g, '').trim()
+        }).get(),
+      }
+      this.seller = {
+        name: this.$('.dealer-details--full').find('#dealer-name').text(),
+        rating: this.$('.dealer-details--full').find('.dealer__overall-rating-score').text(),
+        description: this.$('.dealer-details--full').find('.atc-type-picanto').text(),
+      }
+    }
   }
 
   get() {
-    return this
+    return this.condition === 'Used' ? {
+      title: this.title,
+      price: this.price,
+      description: this.description,
+      rating: this.rating,
+      condition: this.condition,
+      keySpecs: this.keySpecs,
+      seller: this.seller
+    } : {
+      title: this.title,
+      price: this.price,
+      condition: this.condition,
+      keySpecs: this.keySpecs,
+      standardFeatures: this.standardFeatures,
+      review: this.review,
+      seller: this.seller
+    }
+  }
+
+  json() {
+    return this.used ? JSON.stringify({
+      title: this.title,
+      price: this.price,
+      description: this.description,
+      condition: this.condition,
+      keySpecs: this.keySpecs,
+      seller: this.seller
+    }) : JSON.stringify({
+      title: this.title,
+      price: this.price,
+      keySpecs: this.keySpecs,
+      standardFeatures: this.standardFeatures,
+      review: this.review,
+      seller: this.seller
+    })
   }
 }
 
