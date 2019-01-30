@@ -26,10 +26,13 @@ class AutoTraderScraper {
   async fetchAdvert(url) {
     const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
     if (condition === 'Used') {
+      // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
+      // TODO: Impliment a method of detecting whether certain information exists before waiting for it (i.e. seller information)
       let content = await nightmare
         .goto(url)
         .wait('div.fpa__wrapper')
         // .wait('#about-seller > p > button')
+        .wait('div.review-links')
         .click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button')
         // .click('#about-seller > p > button')
         .evaluate(function() {
@@ -62,8 +65,10 @@ class Advert {
       this.title = this.$('.advert-heading__title').text()
       this.price = this.$('.advert-price__cash-price').text()
       this.description = this.$('.fpa__description').text()
-      // TODO: Switch rating to object with autotrader and owner ratings
-      this.rating = this.$('.starRating__number').text()
+      this.rating = {
+        owner: this.$('section.stars__owner-rating--small').next('span.review-links__rating').text(),
+        autotrader: this.$('section.stars__expert-rating--small').next('span.review-links__rating').text()
+      }
       this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
