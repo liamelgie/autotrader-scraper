@@ -1,5 +1,5 @@
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ show: false,  pollInterval: 20, width: 1400 })
+const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 20, width: 1400 })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
