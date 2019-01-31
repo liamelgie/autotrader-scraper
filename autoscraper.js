@@ -166,8 +166,8 @@ class Listing {
   constructor(node) {
     if (!node) return null
     this.$ = cheerio.load(node)
-    this.price = this.$('.vehicle-price').text()
     this.title = this.$('.listing-title').text()
+    this.price = this.$('.vehicle-price').first().text()
     /* FIX: the following cannot be used as the data provided by users is unpredictable. This must be addressed.
      * this.year = this.$('.listing-key-specs ').find('li').first().text()
      * this.body = this.$('.listing-key-specs ').find('li').first().next().text()
@@ -186,8 +186,8 @@ class Listing {
 
   get() {
     return {
-      price: this.price,
       title: this.title,
+      price: this.price,
       keySpecs: this.keySpecs,
       description: this.description,
       location: this.location,
@@ -197,8 +197,8 @@ class Listing {
 
   json() {
     return JSON.stringify({
-      price: this.price,
       title: this.title,
+      price: this.price,
       keySpecs: this.keySpecs,
       description: this.description,
       location: this.location,
