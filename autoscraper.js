@@ -15,20 +15,20 @@ class AutoTraderScraper {
   }
 
   _buildSearchURL(criteria) {
-    let radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
-    let postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode}` : ''
-    let conditionParam = criteria.condition ? `&onesearchad=${criteria.condition}` : ''
-    let minPriceParam = criteria.price.min ? `&price-from=${criteria.price.min}` : ''
-    let maxPriceParam = criteria.price.max ? `&price-to=${criteria.price.max}` : ''
-    let makeParam = criteria.make ? `&make=${encodeURIComponent(criteria.make.toUpperCase())}` : ''
-    let modelParam = criteria.model ? `&model=${encodeURIComponent(criteria.model.toUpperCase())}` : ''
-    let variantParam = criteria.variant ? `&aggregatedTrim=${encodeURIComponent(criteria.variant)}` : ''
-    let pageParam = criteria.pageNumber && /[0-9]+/.test(criteria.pageNumber) ? `&page=${criteria.pageNumber}` : ''
+    const radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
+    const postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode}` : ''
+    const conditionParam = criteria.condition ? `&onesearchad=${criteria.condition}` : ''
+    const minPriceParam = criteria.price.min ? `&price-from=${criteria.price.min}` : ''
+    const maxPriceParam = criteria.price.max ? `&price-to=${criteria.price.max}` : ''
+    const makeParam = criteria.make ? `&make=${encodeURIComponent(criteria.make.toUpperCase())}` : ''
+    const modelParam = criteria.model ? `&model=${encodeURIComponent(criteria.model.toUpperCase())}` : ''
+    const variantParam = criteria.variant ? `&aggregatedTrim=${encodeURIComponent(criteria.variant)}` : ''
+    const pageParam = criteria.pageNumber && /[0-9]+/.test(criteria.pageNumber) ? `&page=${criteria.pageNumber}` : ''
     return `https://www.autotrader.co.uk/car-search?${radiusParam}${postcodeParam}${conditionParam}${makeParam}${modelParam}${variantParam}${minPriceParam}${maxPriceParam}${pageParam}`
   }
 
   async fetchListings(url) {
-    let content = await fetch(url)
+    const content = await fetch(url)
       .then(res => res.text())
       .then((body) => {
         return body
@@ -36,7 +36,7 @@ class AutoTraderScraper {
     if (!content) return false
     const $ = cheerio.load(content)
     const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
-    let listings = $('li.search-page__result').map((i, el) => {
+    const listings = $('li.search-page__result').map((i, el) => {
       return new Listing(el).get()
     }).get()
     return listings
@@ -47,7 +47,7 @@ class AutoTraderScraper {
     if (condition === 'Used') {
       // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
       // TODO: Impliment a method of detecting whether certain information exists before waiting for it (i.e. seller information)
-      let content = await nightmare
+      const content = await nightmare
         .goto(url)
         .wait('div.fpa__wrapper')
         // .wait('#about-seller > p > button')
@@ -58,7 +58,7 @@ class AutoTraderScraper {
           return document.body.innerHTML
         }).end()
       const $ = cheerio.load(content)
-      let advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
+      const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
       return advert.get()
     } else {
       let content = await nightmare
@@ -69,7 +69,7 @@ class AutoTraderScraper {
         return document.body.innerHTML
       }).end()
       const $ = cheerio.load(content)
-      let advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
+      const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
       return advert.get()
     }
   }
