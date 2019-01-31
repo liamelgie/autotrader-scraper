@@ -15,6 +15,7 @@ class AutoTraderScraper {
   }
 
   _buildSearchURL(criteria) {
+    // TODO: Pull parameters from Criteria object
     const radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
     const postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode.toLowerCase()}` : ''
     // TODO: Reformat ternary
@@ -28,33 +29,21 @@ class AutoTraderScraper {
     const maxYearParam = criteria.year.max && /[0-9]+/.test(criteria.year.max) ? `&year-to=${criteria.year.max}` : ''
     const minMileageParam = criteria.mileage.min && /[0-9]+/.test(criteria.mileage.min) ? `&minimum-mileage=${criteria.mileage.min}` : ''
     const maxMileageParam = criteria.mileage.max && /[0-9]+/.test(criteria.mileage.max) ? `&maximum-mileage=${criteria.mileage.max}` : ''
-    // TODO: Add validation for body type
-    const bodyTypeParam = criteria.body ? `&body-type=${encodeURIComponent(criteria.body)}` : ''
-    // TODO: Add validation for fuel
-    const fuelTypeParam = criteria.fuel.type ? `&fuel-type=${criteria.fuel.type}` : ''
-    const fuelConsumptionParam = criteria.fuel.consumption ? `&fuel-consumption=${criteria.fuel.consumption}` : ''
-    // TODO: Add validation for engine size
-    const minEngineSizeParam = criteria.engine.min ? `&minimum-badge-engine-size=${criteria.engine.min}` : ''
-    const maxEngineSizeParam = criteria.engine.max ? `&maximum-badge-engine-size=${criteria.engine.max}` : ''
-    // TODO: Add validation for acceleration
-    const accelerationParam = criteria.acceleration ? `&zero-to-60=${criteria.acceleration}` : ''
-    // TODO: Add validation for gearbox
-    const gearboxParam = criteria.gearbox ? `&transmission=${criteria.gearbox}` : ''
-    // TODO: Add validation for drivetrain
-    const drivetrainParam = criteria.drivetrain ? `&drivetrain=${encodeURIComponent(criteria.drivetrain)}` : ''
-    // TODO: Add validation for co2 emissions
-    const emissionsParam = criteria.emissions ? `&co2-emissions-cars=${criteria.emissions}` : ''
-    // TODO: Add validation for doors
-    const doorsParam = criteria.doors ? `&quantity-of-doors=${criteria.doors}` : ''
-    // TODO: Add validation for seats
-    const minSeatsParam = criteria.seats.min ? `&minimum-seats=${criteria.seats.min}` : ''
-    const maxSeatsParam = criteria.seats.max ? `&maximum-seats=${criteria.seats.max}` : ''
-    // TODO: Add validation for insurance group
-    const insuranceGroupParam = criteria.insurance ? `&insuranceGroup=${criteria.insurance}` : ''
-    // TODO: Add validation for annual tax
-    const annualTaxParam = criteria.tax ? `&annual-tax-cars=${criteria.tax}` : ''
-    // TODO: Add validation for colour
-    const colourParam = criteria.colour ? `&colour=${encodeURIComponent(criteria.colour)}` : ''
+    const bodyTypeParam = criteria.body ? new Criteria('body', criteria.body).validate() ? `&body-type=${encodeURIComponent(criteria.body)}` : '' : ''
+    const fuelTypeParam = criteria.fuel.type ? new Criteria('fuelType', criteria.fuel.type).validate() ? `&fuel-type=${criteria.fuel.type}` : '' : ''
+    const fuelConsumptionParam = criteria.fuel.consumption ? new Criteria('fuelConsumption', criteria.fuel.consumption).validate() ? `&fuel-consumption=${criteria.fuel.consumption}` : '' : ''
+    const minEngineSizeParam = criteria.engine.min ? new Criteria('engineSize', criteria.engine.min).validate() ? `&minimum-badge-engine-size=${criteria.engine.min}` : '' : ''
+    const maxEngineSizeParam = criteria.engine.max ? new Criteria('engineSize', criteria.engine.max).validate() ? `&maximum-badge-engine-size=${criteria.engine.max}` : '' : ''
+    const accelerationParam = criteria.acceleration ? new Criteria('acceleration', criteria.acceleration).validate() ? `&zero-to-60=${criteria.acceleration}` : '' : ''
+    const gearboxParam = criteria.gearbox ? new Criteria('gearbox', criteria.gearbox).validate() ? `&transmission=${criteria.gearbox}` : '' : ''
+    const drivetrainParam = criteria.drivetrain ? new Criteria('drivetrain', criteria.drivetrain).validate() ? `&drivetrain=${encodeURIComponent(criteria.drivetrain)}` : '' : ''
+    const emissionsParam = criteria.emissions ? new Criteria('emissions', criteria.emissions).validate() ? `&co2-emissions-cars=${criteria.emissions}` : '' : ''
+    const doorsParam = criteria.doors ? new Criteria('doors', criteria.doors).validate() ? `&quantity-of-doors=${criteria.doors}` : '' : ''
+    const minSeatsParam = criteria.seats.min ? new Criteria('seats', criteria.seats.min).validate() ? `&minimum-seats=${criteria.seats.min}` : '' : ''
+    const maxSeatsParam = criteria.seats.max ? new Criteria('seats', criteria.seats.max).validate() ? `&maximum-seats=${criteria.seats.max}` : '' : ''
+    const insuranceGroupParam = criteria.insurance ? new Criteria('insuranceGroup', criteria.insurance).validate() ? `&insuranceGroup=${criteria.insurance}` : '' : ''
+    const annualTaxParam = criteria.tax ? new Criteria('annualTax', criteria.tax).validate() ? `&annual-tax-cars=${criteria.tax}` : '' : ''
+    const colourParam = criteria.colour ? new Criteria('colour', criteria.colour).validate() ? `&colour=${encodeURIComponent(criteria.colour)}` : '' : ''
     const excludeWriteOffsParam = criteria.excludeWriteOffs ? `&exclude-writeoff-categories=on` : ''
     const onlyWriteOffsParam = criteria.onlyWriteOffs ? `&only-writeoff-categories=on` : ''
     const customKeywordsParam = criteria.customKeywords ? `&keywords=${encodeURIComponent(customKeywords)}` : ''
@@ -109,6 +98,70 @@ class AutoTraderScraper {
       const $ = cheerio.load(content)
       const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
       return advert.get()
+    }
+  }
+}
+
+class Criteria {
+  // Add getters to generate URL ready parameters for each criteria
+  constructor(type, value) {
+      this.type = type
+      this.value = value
+  }
+  validate() {
+    switch (this.type) {
+      case 'body':
+        const VALID_BODY_TYPES = ['Convertible', 'Coupe', 'Estate', 'Hatchback', 'MPV', 'Other', 'Pickup', 'SUV', 'Unlisted']
+        return VALID_BODY_TYPES.includes(this.value)
+        break
+      case 'fuelType':
+        const VALID_FUEL_TYPES = ['Bi Fuel', 'Diesel', ' Electric', 'Hybrid - Diesel/Electric', 'Hybrid - Diesel/Electric Plug-in', 'Hybrid - Petrol/Electric', 'Hybrid - Petrol/Electric Plug-in', 'Petrol', 'Petrol Ethanol', 'Unlisted']
+        return VALID_FUEL_TYPES.includes(this.value)
+        break
+      case 'fuelConsumption':
+        const VALID_FUEL_CONSUMPTIONS = ['OVER_30', 'OVER_40', 'OVER_50', 'OVER_60']
+        return VALID_FUEL_CONSUMPTIONS.includes(this.value)
+        break
+      case 'engineSize':
+        const VALID_ENGINE_SIZES = ['0', '1.0', '1.2', '1.4', '1.6', '1.8', '1.9', '2.0', '2.2', '2.4', '2.6', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0']
+        return VALID_ENGINE_SIZES.includes(this.value)
+        break
+      case 'acceleration':
+        const VALID_ACCELERATION = ['TO_5', 'TO_8', '8_TO_12', 'OVER_12']
+        return VALID_ACCELERATION.includes(this.value)
+        break
+      case 'gearbox':
+        const VALID_GEARBOX = ['Automatic', 'Manual']
+        return VALID_GEARBOX.includes(this.value)
+        break
+      case 'drivetrain':
+        const VALID_DRIVETRAIN = ['All Wheel Drive', 'Four Wheel Drive', 'Front Wheel Drive', 'Rear Wheel Drive']
+        return VALID_DRIVETRAIN.includes(this.value)
+        break
+      case 'emissions':
+        const VALID_EMISSIONS = ['TO_75', 'TO_100', 'TO_110', 'TO_120', 'TO_130', 'TO_140', 'TO_150', 'TO_165', 'TO_175', 'TO_185', 'TO_200', 'TO_225', 'TO_255', 'OVER_255']
+        return VALID_EMISSIONS.includes(this.value)
+        break
+      case 'doors':
+        const VALID_DOORS = ['0', '2', '3', '4', '5', '6']
+        return VALID_DOORS.includes(this.value)
+        break
+      case 'seats':
+        const VALID_SEATS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+        return VALID_SEATS.includes(this.value)
+        break
+      case 'insuranceGroup':
+        const VALID_INSURANCE_GROUPS = ['10U', '20U', '30U', '40U']
+        return VALID_INSURANCE_GROUPS.includes(this.value)
+        break
+      case 'annualTax':
+        const VALID_ANNUAL_TAX = ['EQ_0', 'TO_20', 'TO_30', 'TO_110', 'TO_130', 'TO_145', 'TO_185', 'TO_210', 'TO_230', 'TO_270', 'TO_295', 'TO_500', 'OVER_500']
+        return VALID_ANNUAL_TAX.includes(this.value)
+        break
+      case 'colour':
+        const VALID_COLOURS = ['Beige', 'Black', 'Blue', 'Bronze', 'Brown', 'Burgundy', 'Gold', 'Green', 'Grey', 'Indigo', 'Magenta', 'Maroon', 'Multicolour', 'Navy', 'Orange', 'Pink', 'Purple', 'Red', 'Silver', 'Turquoise', 'Unlisted', 'White', 'Yellow']
+        return VALID_COLOURS.includes(this.value)
+        break
     }
   }
 }
