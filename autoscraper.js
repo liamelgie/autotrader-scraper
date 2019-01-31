@@ -16,8 +16,9 @@ class AutoTraderScraper {
 
   _buildSearchURL(criteria) {
     const radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
-    const conditionParam = criteria.condition ? `&onesearchad=${criteria.condition}` : ''
     const postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode.toLowerCase()}` : ''
+    // TODO: Reformat ternary
+    const conditionParam = criteria.condition ? typeof criteria.condition === 'object' ? criteria.condition.map((c) => { return `&onesearchad=${encodeURIComponent(c)}` }).join('') : `&onesearchad=${encodeURIComponent(criteria.condition)}` : ''
     const minPriceParam = criteria.price.min ? `&price-from=${criteria.price.min}` : ''
     const maxPriceParam = criteria.price.max ? `&price-to=${criteria.price.max}` : ''
     const makeParam = criteria.make ? `&make=${encodeURIComponent(criteria.make.toUpperCase())}` : ''
