@@ -9,6 +9,12 @@ class AutoTraderScraper {
   }
 
   async search(criteria) {
+    const url = this._buildSearchURL(criteria)
+    const listings = await this.fetchListings(url)
+    return listings
+  }
+
+  _buildSearchURL(criteria) {
     let radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
     let postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode}` : ''
     let conditionParam = criteria.condition ? `&onesearchad=${criteria.condition}` : ''
@@ -18,9 +24,7 @@ class AutoTraderScraper {
     let modelParam = criteria.model ? `&model=${encodeURIComponent(criteria.model.toUpperCase())}` : ''
     let variantParam = criteria.variant ? `&aggregatedTrim=${encodeURIComponent(criteria.variant)}` : ''
     let pageParam = criteria.pageNumber && /[0-9]+/.test(criteria.pageNumber) ? `&page=${criteria.pageNumber}` : ''
-    let url = `https://www.autotrader.co.uk/car-search?${radiusParam}${postcodeParam}${conditionParam}${makeParam}${modelParam}${variantParam}${minPriceParam}${maxPriceParam}${pageParam}`
-    let listings = await this.fetchListings(url)
-    return listings
+    return `https://www.autotrader.co.uk/car-search?${radiusParam}${postcodeParam}${conditionParam}${makeParam}${modelParam}${variantParam}${minPriceParam}${maxPriceParam}${pageParam}`
   }
 
   async fetchListings(url) {
