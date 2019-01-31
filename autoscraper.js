@@ -16,15 +16,52 @@ class AutoTraderScraper {
 
   _buildSearchURL(criteria) {
     const radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
-    const postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode}` : ''
     const conditionParam = criteria.condition ? `&onesearchad=${criteria.condition}` : ''
+    const postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode.toLowerCase()}` : ''
     const minPriceParam = criteria.price.min ? `&price-from=${criteria.price.min}` : ''
     const maxPriceParam = criteria.price.max ? `&price-to=${criteria.price.max}` : ''
     const makeParam = criteria.make ? `&make=${encodeURIComponent(criteria.make.toUpperCase())}` : ''
     const modelParam = criteria.model ? `&model=${encodeURIComponent(criteria.model.toUpperCase())}` : ''
     const variantParam = criteria.variant ? `&aggregatedTrim=${encodeURIComponent(criteria.variant)}` : ''
+    const minYearParam = criteria.year.min && /[0-9]+/.test(criteria.year.min) ? `&year-from=${criteria.year.min}` : ''
+    const maxYearParam = criteria.year.max && /[0-9]+/.test(criteria.year.max) ? `&year-to=${criteria.year.max}` : ''
+    const minMileageParam = criteria.mileage.min && /[0-9]+/.test(criteria.mileage.min) ? `&minimum-mileage=${criteria.mileage.min}` : ''
+    const maxMileageParam = criteria.mileage.max && /[0-9]+/.test(criteria.mileage.max) ? `&maximum-mileage=${criteria.mileage.max}` : ''
+    // TODO: Add validation for body type
+    const bodyTypeParam = criteria.body ? `&body-type=${encodeURIComponent(criteria.body)}` : ''
+    // TODO: Add validation for fuel
+    const fuelTypeParam = criteria.fuel.type ? `&fuel-type=${criteria.fuel.type}` : ''
+    const fuelConsumptionParam = criteria.fuel.consumption ? `&fuel-consumption=${criteria.fuel.consumption}` : ''
+    // TODO: Add validation for engine size
+    const minEngineSizeParam = criteria.engine.min ? `&minimum-badge-engine-size=${criteria.engine.min}` : ''
+    const maxEngineSizeParam = criteria.engine.max ? `&maximum-badge-engine-size=${criteria.engine.max}` : ''
+    // TODO: Add validation for acceleration
+    const accelerationParam = criteria.acceleration ? `&zero-to-60=${criteria.acceleration}` : ''
+    // TODO: Add validation for gearbox
+    const gearboxParam = criteria.gearbox ? `&transmission=${criteria.gearbox}` : ''
+    // TODO: Add validation for drivetrain
+    const drivetrainParam = criteria.drivetrain ? `&drivetrain=${encodeURIComponent(criteria.drivetrain)}` : ''
+    // TODO: Add validation for co2 emissions
+    const emissionsParam = criteria.emissions ? `&co2-emissions-cars=${criteria.emissions}` : ''
+    // TODO: Add validation for doors
+    const doorsParam = criteria.doors ? `&quantity-of-doors=${criteria.doors}` : ''
+    // TODO: Add validation for seats
+    const minSeatsParam = criteria.seats.min ? `&minimum-seats=${criteria.seats.min}` : ''
+    const maxSeatsParam = criteria.seats.max ? `&maximum-seats=${criteria.seats.max}` : ''
+    // TODO: Add validation for insurance group
+    const insuranceGroupParam = criteria.insurance ? `&insuranceGroup=${criteria.insurance}` : ''
+    // TODO: Add validation for annual tax
+    const annualTaxParam = criteria.tax ? `&annual-tax-cars=${criteria.tax}` : ''
+    // TODO: Add validation for colour
+    const colourParam = criteria.colour ? `&colour=${encodeURIComponent(criteria.colour)}` : ''
+    const excludeWriteOffsParam = criteria.excludeWriteOffs ? `&exclude-writeoff-categories=on` : ''
+    const onlyWriteOffsParam = criteria.onlyWriteOffs ? `&only-writeoff-categories=on` : ''
+    const customKeywordsParam = criteria.customKeywords ? `&keywords=${encodeURIComponent(customKeywords)}` : ''
     const pageParam = criteria.pageNumber && /[0-9]+/.test(criteria.pageNumber) ? `&page=${criteria.pageNumber}` : ''
-    return `https://www.autotrader.co.uk/car-search?${radiusParam}${postcodeParam}${conditionParam}${makeParam}${modelParam}${variantParam}${minPriceParam}${maxPriceParam}${pageParam}`
+    return [`https://www.autotrader.co.uk/car-search?${radiusParam}${postcodeParam}${conditionParam}${makeParam}${modelParam}${variantParam}`,
+      `${minPriceParam}${maxPriceParam}${minYearParam}${maxYearParam}${minMileageParam}${maxMileageParam}${bodyTypeParam}${fuelTypeParam}${fuelConsumptionParam}`,
+      `${minEngineSizeParam}${maxEngineSizeParam}${accelerationParam}${gearboxParam}${drivetrainParam}${emissionsParam}${doorsParam}${minSeatsParam}${maxSeatsParam}`,
+      `${insuranceGroupParam}${annualTaxParam}${colourParam}${excludeWriteOffsParam}${onlyWriteOffsParam}${customKeywordsParam}${pageParam}`].join('')
   }
 
   async fetchListings(url) {
