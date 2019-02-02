@@ -75,12 +75,13 @@ class AutoTraderScraper {
     if (condition === 'Used') {
       // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
       // TODO: Impliment a method of detecting whether certain information exists before waiting for it (i.e. seller information)
+      // FIX: Wait/Click calls causing hanging on pages without the specified sections
       const content = await nightmare
         .goto(url)
         .wait('div.fpa__wrapper')
         // .wait('#about-seller > p > button')
-        .wait('div.review-links')
-        .click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button')
+        // .wait('div.review-links')
+        // .click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button')
         // .click('#about-seller > p > button')
         .evaluate(function() {
           return document.body.innerHTML
@@ -292,6 +293,10 @@ class Advert {
       this.title = this.$('.advert-heading__title').text()
       this.price = this.$('.advert-price__cash-price').text()
       this.description = this.$('.fpa__description').text()
+      // TODO: Currently only grabs the first two images as they are pulled from the server once the user clicks through the gallery. Find a way around this.
+      this.images = this.$('section.gallery').find('ul.gallery__items-list').find('li').map((i, el) => {
+        return this.$(el).find('img').attr('src')
+      }).get()
       this.rating = {
         owner: this.$('section.stars__owner-rating--small').next('span.review-links__rating').text(),
         autotrader: this.$('section.stars__expert-rating--small').next('span.review-links__rating').text()
@@ -310,6 +315,9 @@ class Advert {
     } else {
       this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
       this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
+      this.images = this.$('.gallery__items-list').find('li').map((i, el) => {
+        return this.$(el).find('img').attr('src')
+      }).get()
       this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
@@ -339,6 +347,7 @@ class Advert {
     return this.condition === 'Used' ? {
       title: this.title,
       price: this.price,
+      images: this.images,
       description: this.description,
       rating: this.rating,
       condition: this.condition,
@@ -347,6 +356,7 @@ class Advert {
     } : {
       title: this.title,
       price: this.price,
+      images: this.images,
       condition: this.condition,
       keySpecs: this.keySpecs,
       standardFeatures: this.standardFeatures,
@@ -359,6 +369,7 @@ class Advert {
     return this.used ? JSON.stringify({
       title: this.title,
       price: this.price,
+      images: this.images,
       description: this.description,
       condition: this.condition,
       keySpecs: this.keySpecs,
@@ -366,6 +377,7 @@ class Advert {
     }) : JSON.stringify({
       title: this.title,
       price: this.price,
+      images: this.images,
       keySpecs: this.keySpecs,
       standardFeatures: this.standardFeatures,
       review: this.review,
@@ -380,6 +392,7 @@ class Listing {
     this.$ = cheerio.load(node)
     this.title = this.$('.listing-title').text()
     this.price = this.$('.vehicle-price').first().text()
+    this.image = this.$('.listing-main-image').find('img').attr('src')
     /* FIX: the following cannot be used as the data provided by users is unpredictable. This must be addressed.
      * this.year = this.$('.listing-key-specs ').find('li').first().text()
      * this.body = this.$('.listing-key-specs ').find('li').first().next().text()
@@ -400,6 +413,7 @@ class Listing {
     return {
       title: this.title,
       price: this.price,
+      image: this.image,
       keySpecs: this.keySpecs,
       description: this.description,
       location: this.location,
@@ -411,6 +425,7 @@ class Listing {
     return JSON.stringify({
       title: this.title,
       price: this.price,
+      image: this.image,
       keySpecs: this.keySpecs,
       description: this.description,
       location: this.location,
