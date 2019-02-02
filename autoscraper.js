@@ -15,43 +15,44 @@ class AutoTraderScraper {
   }
 
   _buildSearchURL(criteria) {
-    // TODO: Pull parameters from Criteria object
-    const radiusParam = criteria.location.radius && criteria.location.postcode ? `radius=${criteria.location.radius}` : ''
-    const postcodeParam = criteria.location.postcode && criteria.location.radius ? `&postcode=${criteria.location.postcode.toLowerCase()}` : ''
-    // TODO: Reformat ternary
-    const conditionParam = criteria.condition ? typeof criteria.condition === 'object' ? criteria.condition.map((c) => { return `&onesearchad=${encodeURIComponent(c)}` }).join('') : `&onesearchad=${encodeURIComponent(criteria.condition)}` : ''
-    const minPriceParam = criteria.price.min ? `&price-from=${criteria.price.min}` : ''
-    const maxPriceParam = criteria.price.max ? `&price-to=${criteria.price.max}` : ''
-    const makeParam = criteria.make ? `&make=${encodeURIComponent(criteria.make.toUpperCase())}` : ''
-    const modelParam = criteria.model ? `&model=${encodeURIComponent(criteria.model.toUpperCase())}` : ''
-    const variantParam = criteria.variant ? `&aggregatedTrim=${encodeURIComponent(criteria.variant)}` : ''
-    const minYearParam = criteria.year.min && /[0-9]+/.test(criteria.year.min) ? `&year-from=${criteria.year.min}` : ''
-    const maxYearParam = criteria.year.max && /[0-9]+/.test(criteria.year.max) ? `&year-to=${criteria.year.max}` : ''
-    const minMileageParam = criteria.mileage.min && /[0-9]+/.test(criteria.mileage.min) ? `&minimum-mileage=${criteria.mileage.min}` : ''
-    const maxMileageParam = criteria.mileage.max && /[0-9]+/.test(criteria.mileage.max) ? `&maximum-mileage=${criteria.mileage.max}` : ''
-    const bodyTypeParam = criteria.body ? new Criteria('body', criteria.body).validate() ? `&body-type=${encodeURIComponent(criteria.body)}` : '' : ''
-    const fuelTypeParam = criteria.fuel.type ? new Criteria('fuelType', criteria.fuel.type).validate() ? `&fuel-type=${criteria.fuel.type}` : '' : ''
-    const fuelConsumptionParam = criteria.fuel.consumption ? new Criteria('fuelConsumption', criteria.fuel.consumption).validate() ? `&fuel-consumption=${criteria.fuel.consumption}` : '' : ''
-    const minEngineSizeParam = criteria.engine.min ? new Criteria('engineSize', criteria.engine.min).validate() ? `&minimum-badge-engine-size=${criteria.engine.min}` : '' : ''
-    const maxEngineSizeParam = criteria.engine.max ? new Criteria('engineSize', criteria.engine.max).validate() ? `&maximum-badge-engine-size=${criteria.engine.max}` : '' : ''
-    const accelerationParam = criteria.acceleration ? new Criteria('acceleration', criteria.acceleration).validate() ? `&zero-to-60=${criteria.acceleration}` : '' : ''
-    const gearboxParam = criteria.gearbox ? new Criteria('gearbox', criteria.gearbox).validate() ? `&transmission=${criteria.gearbox}` : '' : ''
-    const drivetrainParam = criteria.drivetrain ? new Criteria('drivetrain', criteria.drivetrain).validate() ? `&drivetrain=${encodeURIComponent(criteria.drivetrain)}` : '' : ''
-    const emissionsParam = criteria.emissions ? new Criteria('emissions', criteria.emissions).validate() ? `&co2-emissions-cars=${criteria.emissions}` : '' : ''
-    const doorsParam = criteria.doors ? new Criteria('doors', criteria.doors).validate() ? `&quantity-of-doors=${criteria.doors}` : '' : ''
-    const minSeatsParam = criteria.seats.min ? new Criteria('seats', criteria.seats.min).validate() ? `&minimum-seats=${criteria.seats.min}` : '' : ''
-    const maxSeatsParam = criteria.seats.max ? new Criteria('seats', criteria.seats.max).validate() ? `&maximum-seats=${criteria.seats.max}` : '' : ''
-    const insuranceGroupParam = criteria.insurance ? new Criteria('insuranceGroup', criteria.insurance).validate() ? `&insuranceGroup=${criteria.insurance}` : '' : ''
-    const annualTaxParam = criteria.tax ? new Criteria('annualTax', criteria.tax).validate() ? `&annual-tax-cars=${criteria.tax}` : '' : ''
-    const colourParam = criteria.colour ? new Criteria('colour', criteria.colour).validate() ? `&colour=${encodeURIComponent(criteria.colour)}` : '' : ''
-    const excludeWriteOffsParam = criteria.excludeWriteOffs ? `&exclude-writeoff-categories=on` : ''
-    const onlyWriteOffsParam = criteria.onlyWriteOffs ? `&only-writeoff-categories=on` : ''
-    const customKeywordsParam = criteria.customKeywords ? `&keywords=${encodeURIComponent(customKeywords)}` : ''
-    const pageParam = criteria.pageNumber && /[0-9]+/.test(criteria.pageNumber) ? `&page=${criteria.pageNumber}` : ''
-    return [`https://www.autotrader.co.uk/car-search?${radiusParam}${postcodeParam}${conditionParam}${makeParam}${modelParam}${variantParam}`,
-      `${minPriceParam}${maxPriceParam}${minYearParam}${maxYearParam}${minMileageParam}${maxMileageParam}${bodyTypeParam}${fuelTypeParam}${fuelConsumptionParam}`,
-      `${minEngineSizeParam}${maxEngineSizeParam}${accelerationParam}${gearboxParam}${drivetrainParam}${emissionsParam}${doorsParam}${minSeatsParam}${maxSeatsParam}`,
-      `${insuranceGroupParam}${annualTaxParam}${colourParam}${excludeWriteOffsParam}${onlyWriteOffsParam}${customKeywordsParam}${pageParam}`].join('')
+    const radius = criteria.radius ? new Criteria('radius', criteria.radius) : null
+    const postcode = criteria.postcode ? new Criteria('postcode', criteria.postcode) : null
+    const condition = criteria.condition ? new Criteria('condition', criteria.condition) : null
+    const minPrice = criteria.price.min ? new Criteria('minPrice', criteria.price.min) : null
+    const maxPrice = criteria.price.max ? new Criteria('maxPrice', criteria.price.max) : null
+    const make = criteria.make ? new Criteria('make', criteria.make) : null
+    const model = criteria.model ? new Criteria('model', criteria.model) : null
+    const variant = criteria.variant ? new Criteria('variant', criteria.variant) : null
+    const minYear = criteria.year.min ? new Criteria('minYear', criteria.year.min): null
+    const maxYear = criteria.year.max ? new Criteria('maxYear', criteria.year.max): null
+    const minMileage = criteria.mileage.min ? new Criteria('minMileage', criteria.mileage.min) : null
+    const maxMileage = criteria.mileage.max ? new Criteria('maxMileage', criteria.mileage.max) : null
+    const body = criteria.body ? new Criteria('body', criteria.body) : null
+    const fuelType = criteria.fuel.type ? new Criteria('fuelType', criteria.fuel.type) : null
+    const fuelConsumption = criteria.fuel.consumption ? new Criteria('fuelConsumption', criteria.fuel.consumption) : null
+    const minEngineSize = criteria.engine.min ? new Criteria('minEngineSize', criteria.engine.min) : null
+    const maxEngineSize = criteria.engine.max ? new Criteria('maxEngineSize', criteria.engine.max) : null
+    const acceleration = criteria.acceleration ? new Criteria('acceleration', criteria.acceleration) : null
+    const gearbox = criteria.gearbox ? new Criteria('gearbox', criteria.gearbox) : null
+    const drivetrain = criteria.drivetrain ? new Criteria('drivetrain', criteria.drivetrain) : null
+    const emissions = criteria.emissions ? new Criteria('emissions', criteria.emissions) : null
+    const doors = criteria.doors ? new Criteria('doors', criteria.doors) : null
+    const minSeats = criteria.seats.min ? new Criteria('minSeats', criteria.seats.min) : null
+    const maxSeats = criteria.seats.max ? new Criteria('maxSeats', criteria.seats.max) : null
+    const insurance = criteria.insurance ? new Criteria('insuranceGroup', criteria.insurance) : null
+    const annualTax = criteria.tax ? new Criteria('annualTax', criteria.tax) : null
+    const colour = criteria.colour ? new Criteria('colour', criteria.colour): null
+    const excludeWriteOffs = criteria.excludeWriteOffs ? new Criteria('excludeWriteOffs', true) : null
+    const onlyWriteOffs = criteria.onlyWriteOffs ? new Criteria('onlyWriteOffs', true) : null
+    const customKeywords = criteria.customKeywords ? new Criteria('customKeywords', criteria.customKeywords) : null
+    const page = criteria.pageNumber ? new Criteria('page', criteria.pageNumber) : null
+    return [`https://www.autotrader.co.uk/car-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
+      `${variant ? variant.parameter : ''}${minPrice ? minPrice.parameter : ''}${maxPrice ? maxPrice.parameter : ''}${minYear ? minYear.parameter : ''}${maxYear ? maxYear.parameter : ''}`,
+      `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
+      `${minEngineSize ? minEngineSize.parameter : ''}${maxEngineSize ? maxEngineSize.parameter : ''}${acceleration ? acceleration.parameter : ''}${gearbox ? gearbox.parameter : ''}`,
+      `${drivetrain ? drivetrain.parameter : ''}${emissions ? emissions.parameter : ''}${doors ? doors.parameter : ''}${minSeats ? minSeats.parameter : ''}${maxSeats ? maxSeats.parameter : ''}`,
+      `${insurance ? insurance.parameter : ''}${annualTax ? annualTax.parameter : ''}${colour ? colour.parameter : ''}${excludeWriteOffs ? excludeWriteOffs.parameter : ''}`,
+      `${onlyWriteOffs ? onlyWriteOffs.parameter : ''}${customKeywords ? customKeywords.parameter : ''}${page ? page.parameter : ''}`].join('')
   }
 
   async fetchListings(url) {
@@ -103,13 +104,127 @@ class AutoTraderScraper {
 }
 
 class Criteria {
-  // Add getters to generate URL ready parameters for each criteria
   constructor(type, value) {
+      if (!type || !value) {
+        console.error('Missing Parameter: Criteria object requires both type and value')
+        return null
+      }
       this.type = type
       this.value = value
   }
+  get parameter() {
+    switch (this.type) {
+      case 'radius':
+        return this.validate() ? `radius=${this.value}` : ''
+        break
+      case 'postcode':
+        return `&postcode=${this.value.toLowerCase()}`
+        break
+      case 'condition':
+        if (typeof this.value === 'object') return this.value.map((c) => { return `&onesearchad=${encodeURIComponent(c)}` }).join('')
+        else `&onesearchad=${encodeURIComponent(this.value)}`
+        break
+      case 'minPrice':
+        return this.validate() ? `&price-from=${this.value}` : ''
+        break
+      case 'maxPrice':
+        return this.validate() ? `&price-to=${this.value}` : ''
+        break
+      case 'make':
+        return `&make=${encodeURIComponent(this.value.toUpperCase())}`
+        break
+      case 'model':
+        return `&model=${encodeURIComponent(this.value.toUpperCase())}`
+        break
+      case 'variant':
+        return `&aggregatedTrim=${encodeURIComponent(this.value)}`
+        break
+      case 'minYear':
+        return this.validate() ? `&year-from=${this.value}` : ''
+        break
+      case 'maxYear':
+        return this.validate() ? `&year-to=${this.value}` : ''
+        break
+      case 'minMileage':
+        return this.validate() ? `&minimum-mileage=${this.value}` : ''
+        break
+      case 'maxMileage':
+        return this.validate() ? `&maximum-mileage=${this.value}` : ''
+        break
+      case 'body':
+        return this.validate() ? `&body-type=${encodeURIComponent(this.value)}` : ''
+        break
+      case 'fuelType':
+        return this.validate() ? `&fuel-type=${this.value}` : ''
+        break
+      case 'fuelConsumption':
+        return this.validate() ? `&fuel-consumption=${this.value}` : ''
+        break
+      case 'minEngineSize':
+        return this.validate() ? `&minimum-badge-engine-size=${this.value}` : ''
+        break
+      case 'maxEngineSize':
+        return this.validate() ? `&maximum-badge-engine-size=${this.value}` : ''
+        break
+      case 'acceleration':
+        return this.validate() ? `&zero-to-60=${this.value}` : ''
+        break
+      case 'gearbox':
+        return this.validate() ? `&transmission=${this.value}` : ''
+        break
+      case 'drivetrain':
+        return this.validate() ? `&drivetrain=${encodeURIComponent(this.value)}` : ''
+        break
+      case 'emissions':
+        return this.validate() ? `&co2-emissions-cars=${this.value}` : ''
+        break
+      case 'doors':
+        return this.validate() ? `&quantity-of-doors=${this.value}` : ''
+        break
+      case 'minSeats':
+        return this.validate() ? `&minimum-seats=${this.value}` : ''
+        break
+      case 'maxSeats':
+        return this.validate() ? `&maximum-seats=${this.value}` : ''
+        break
+      case 'insuranceGroup':
+        return this.validate() ? `&insuranceGroup=${this.value}` : ''
+        break
+      case 'annualTax':
+        return this.validate() ? `&annual-tax-cars=${this.value}` : ''
+        break
+      case 'colour':
+        return this.validate() ? `&colour=${encodeURIComponent(this.value)}` : ''
+        break
+      case 'excludeWriteOffs':
+        return `&exclude-writeoff-categories=on`
+        break
+      case 'onlyWriteOffs':
+        return `&only-writeoff-categories=on`
+        break
+      case 'customKeywords':
+        return `&keywords=${encodeURIComponent(this.value)}`
+        break
+      case 'page':
+        return `&page=${this.value}`
+        break
+      default:
+        return ''
+        break
+    }
+  }
   validate() {
     switch (this.type) {
+      case 'radius':
+      case 'minPrice':
+      case 'maxPrice':
+      case 'minYear':
+      case 'maxYear':
+      case 'minMileage':
+      case 'maxMileage':
+      case 'page':
+        return /[0-9]+/.test(this.value)
+        break
       case 'body':
         const VALID_BODY_TYPES = ['Convertible', 'Coupe', 'Estate', 'Hatchback', 'MPV', 'Other', 'Pickup', 'SUV', 'Unlisted']
         return VALID_BODY_TYPES.includes(this.value)
@@ -122,7 +237,8 @@ class Criteria {
         const VALID_FUEL_CONSUMPTIONS = ['OVER_30', 'OVER_40', 'OVER_50', 'OVER_60']
         return VALID_FUEL_CONSUMPTIONS.includes(this.value)
         break
-      case 'engineSize':
+      case 'minEngineSize':
+      case 'maxEngineSize':
         const VALID_ENGINE_SIZES = ['0', '1.0', '1.2', '1.4', '1.6', '1.8', '1.9', '2.0', '2.2', '2.4', '2.6', '3.0', '3.5', '4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0']
         return VALID_ENGINE_SIZES.includes(this.value)
         break
@@ -146,7 +262,8 @@ class Criteria {
         const VALID_DOORS = ['0', '2', '3', '4', '5', '6']
         return VALID_DOORS.includes(this.value)
         break
-      case 'seats':
+      case 'minSeats':
+      case 'maxSeats':
         const VALID_SEATS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
         return VALID_SEATS.includes(this.value)
         break
