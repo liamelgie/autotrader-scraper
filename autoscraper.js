@@ -331,7 +331,15 @@ class Advert {
       this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
-      // TODO: Add retrieval of the 'details' section of the ad
+      this.techSpecs = this._convertTechSpecArraysToObjects(this.$('div.tech-specs').find('div.expander').map((i, el) => {
+        const key = this._parseTechSpecKey(this.$(el).find('h3').text())
+        const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
+        const points = data.map((i, el) => {
+          if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
+          else return this.$(el).text()
+        }).get()
+        return { [key]: points }
+      }).get())
       this.review = {
         score: this.$('.review-holder').find('.starRating__number').first().text(),
         blurb: this.$('.review-holder').find('.atc-type-picanto').first().text(),
@@ -347,6 +355,96 @@ class Advert {
         rating: this.$('.dealer-details--full').find('.dealer__overall-rating-score').text(),
         description: this.$('.dealer-details--full').find('.atc-type-picanto').text(),
       }
+    }
+  }
+
+  _convertTechSpecArraysToObjects(array) {
+    const object = Object.assign({}, ...array)
+    object.economyAndPerformance = Object.assign({}, ...object.economyAndPerformance)
+    object.dimensions = Object.assign({}, ...object.dimensions)
+    return object
+  }
+
+  _parseTechSpecKey(key) {
+    switch (key) {
+      case 'Economy & performance':
+        return 'economyAndPerformance'
+        break
+      case 'Driver Convenience':
+        return 'driverConvenience'
+        break
+      case 'Safety':
+        return 'safety'
+        break
+      case 'Exterior Features':
+        return 'exteriorFeatures'
+        break
+      case 'Interior Features':
+        return 'interiorFeatures'
+        break
+      case 'Technical':
+        return 'technical'
+        break
+      case 'Dimensions':
+        return 'dimensions'
+        break
+      case 'Fuel consumption (urban)':
+        return 'fuelConsumptionUrban'
+        break
+      case 'Fuel consumption (extra urban)':
+        return 'fuelConsumptionExtraUrban'
+        break
+      case 'Fuel consumption (combined)':
+        return 'fuelConsumptionCombined'
+        break
+      case '0 - 60 mph':
+        return 'zeroToSixty'
+        break
+      case 'Top speed':
+        return 'topSpeed'
+        break
+      case 'Cylinders':
+        return 'cylinders'
+        break
+      case 'Valves':
+        return 'valves'
+        break
+      case 'Engine power':
+        return 'enginePower'
+        break
+      case 'Engine torque':
+        return 'engineTorque'
+        break
+      case 'CO₂ emissions':
+        return 'CO2Emissions'
+        break
+      case 'Height':
+        return 'height'
+        break
+      case 'Length':
+        return 'length'
+        break
+      case 'Wheelbase':
+        return 'wheelbase'
+        break
+      case 'Width':
+        return 'width'
+        break
+      case 'Fuel tank capacity':
+        return 'fuelTankCapacity'
+        break
+      case 'Boot space (seats down)':
+        return 'bootSpaceSeatsDown'
+        break
+      case 'Boot space (seats up)':
+        return 'bootSpaceSeatsUp'
+        break
+      case 'Minimum kerb weight':
+        return 'minimumKerbWeight'
+        break
+      case 'Annual tax':
+        return 'annualTax'
+        break
     }
   }
 
@@ -367,6 +465,7 @@ class Advert {
       condition: this.condition,
       keySpecs: this.keySpecs,
       standardFeatures: this.standardFeatures,
+      techSpecs: this.techSpecs,
       review: this.review,
       seller: this.seller
     }
@@ -387,6 +486,7 @@ class Advert {
       images: this.images,
       keySpecs: this.keySpecs,
       standardFeatures: this.standardFeatures,
+      techSpecs: this.techSpecs,
       review: this.review,
       seller: this.seller
     })
