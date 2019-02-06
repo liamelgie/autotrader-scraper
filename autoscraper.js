@@ -311,7 +311,19 @@ class Advert {
       this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
-      // TODO: Add retrieval of the 'details' section of the ad
+      this.comesWith = this.$('ul.combined-features__features-list').find('li').map((i, el) => {
+        return this.$(el).text()
+      }).get()
+      this.techSpecs = this._convertTechSpecArraysToObjects(this.$('section.tech-specs').find('div.expander').map((i, el) => {
+        const key = this._parseTechSpecKey(this.$(el).find('button.expander__heading').find('span').text())
+        const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
+        console.log(data.length)
+        const points = data.map((i, el) => {
+          if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
+          else return this.$(el).text()
+        }).get()
+        return { [key]: points }
+      }).get())
       this.seller = {
         name: this.$('.seller-name__link').first().text(),
         location: this.$('.seller-locations__town').text(),
@@ -457,6 +469,8 @@ class Advert {
       rating: this.rating,
       condition: this.condition,
       keySpecs: this.keySpecs,
+      comesWith: this.comesWith,
+      techSpecs: this.techSpecs,
       seller: this.seller
     } : {
       title: this.title,
@@ -479,6 +493,8 @@ class Advert {
       description: this.description,
       condition: this.condition,
       keySpecs: this.keySpecs,
+      comesWith: this.comesWith,
+      techSpecs: this.techSpecs,
       seller: this.seller
     }) : JSON.stringify({
       title: this.title,
