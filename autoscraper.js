@@ -74,27 +74,34 @@ class AutoTraderScraper {
     const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
     if (condition === 'Used') {
       // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
-      // TODO: Impliment a method of detecting whether certain information exists before waiting for it (i.e. seller information)
-      // FIX: Wait/Click calls causing hanging on pages without the specified sections
-      const content = await nightmare
+      await nightmare
         .goto(url)
         .wait('div.fpa__wrapper')
-        // .wait('#about-seller > p > button')
-        // .wait('div.review-links')
-        // .click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button')
-        // .click('#about-seller > p > button')
-        .evaluate(function() {
-          return document.body.innerHTML
-        }).end()
+      // Seller Information
+      if (await nightmare.exists('#about-seller')) await nightmare.wait('#about-seller > p > button').click('#about-seller > p > button')
+      // Review Information
+      if (await nightmare.exists('div.review-links')) {
+        await nightmare.wait('div.review-links').then(async () => {
+          const buttonID = '#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button'
+          if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
+        })
+      }
+      const content = await nightmare.evaluate(function() {
+        return document.body.innerHTML
+      }).end()
       const $ = cheerio.load(content)
       const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
       return advert.get()
     } else {
-      let content = await nightmare
-      .goto(url)
-      .wait('.non-fpa-stock-page')
-      .wait('.dealer-details--full')
-      .evaluate(function() {
+      await nightmare
+        .goto(url)
+        .wait('.non-fpa-stock-page')
+        .wait('.dealer-details--full')
+      // AutoTrader Review
+      if (await nightmare.exists('.review-holder')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > section > div:nth-child(1) > p')
+      // Standard Features
+      if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
+      const content = await nightmare.evaluate(function() {
         return document.body.innerHTML
       }).end()
       const $ = cheerio.load(content)
