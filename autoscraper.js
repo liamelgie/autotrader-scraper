@@ -333,8 +333,8 @@ class Advert {
       }).get()
       // TODO: Add retrieval of the 'details' section of the ad
       this.review = {
-        score: this.$('.review-holder').find('.starRating__number').text(),
-        blurb: this.$('.review-holder').find('.atc-type-picanto').text(),
+        score: this.$('.review-holder').find('.starRating__number').first().text(),
+        blurb: this.$('.review-holder').find('.atc-type-picanto').first().text(),
         pros: this.$('.review-holder').find('.pro-list').find('li').map((i, el) => {
           return this.$(el).text().replace(/\n/g, '').trim()
         }).get(),
