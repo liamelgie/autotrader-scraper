@@ -80,66 +80,10 @@ class AutoTraderScraper {
     else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
-  async search(criteria) {
-    const url = this._buildSearchURL(criteria)
-    const listings = await this.fetchListings(url)
-    return listings
-  }
-
-  _buildSearchURL(criteria) {
-    const radius = criteria.radius ? new Criteria('radius', criteria.radius) : null
-    const postcode = criteria.postcode ? new Criteria('postcode', criteria.postcode) : null
-    const condition = criteria.condition ? new Criteria('condition', criteria.condition) : null
-    const minPrice = criteria.price.min ? new Criteria('minPrice', criteria.price.min) : null
-    const maxPrice = criteria.price.max ? new Criteria('maxPrice', criteria.price.max) : null
-    const make = criteria.make ? new Criteria('make', criteria.make) : null
-    const model = criteria.model ? new Criteria('model', criteria.model) : null
-    const variant = criteria.variant ? new Criteria('variant', criteria.variant) : null
-    const minYear = criteria.year.min ? new Criteria('minYear', criteria.year.min): null
-    const maxYear = criteria.year.max ? new Criteria('maxYear', criteria.year.max): null
-    const minMileage = criteria.mileage.min ? new Criteria('minMileage', criteria.mileage.min) : null
-    const maxMileage = criteria.mileage.max ? new Criteria('maxMileage', criteria.mileage.max) : null
-    const body = criteria.body ? new Criteria('body', criteria.body) : null
-    const fuelType = criteria.fuel.type ? new Criteria('fuelType', criteria.fuel.type) : null
-    const fuelConsumption = criteria.fuel.consumption ? new Criteria('fuelConsumption', criteria.fuel.consumption) : null
-    const minEngineSize = criteria.engine.min ? new Criteria('minEngineSize', criteria.engine.min) : null
-    const maxEngineSize = criteria.engine.max ? new Criteria('maxEngineSize', criteria.engine.max) : null
-    const acceleration = criteria.acceleration ? new Criteria('acceleration', criteria.acceleration) : null
-    const gearbox = criteria.gearbox ? new Criteria('gearbox', criteria.gearbox) : null
-    const drivetrain = criteria.drivetrain ? new Criteria('drivetrain', criteria.drivetrain) : null
-    const emissions = criteria.emissions ? new Criteria('emissions', criteria.emissions) : null
-    const doors = criteria.doors ? new Criteria('doors', criteria.doors) : null
-    const minSeats = criteria.seats.min ? new Criteria('minSeats', criteria.seats.min) : null
-    const maxSeats = criteria.seats.max ? new Criteria('maxSeats', criteria.seats.max) : null
-    const insurance = criteria.insurance ? new Criteria('insuranceGroup', criteria.insurance) : null
-    const annualTax = criteria.tax ? new Criteria('annualTax', criteria.tax) : null
-    const colour = criteria.colour ? new Criteria('colour', criteria.colour): null
-    const excludeWriteOffs = criteria.excludeWriteOffs ? new Criteria('excludeWriteOffs', true) : null
-    const onlyWriteOffs = criteria.onlyWriteOffs ? new Criteria('onlyWriteOffs', true) : null
-    const customKeywords = criteria.customKeywords ? new Criteria('customKeywords', criteria.customKeywords) : null
-    const page = criteria.pageNumber ? new Criteria('page', criteria.pageNumber) : null
-    return [`https://www.autotrader.co.uk/car-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
-      `${variant ? variant.parameter : ''}${minPrice ? minPrice.parameter : ''}${maxPrice ? maxPrice.parameter : ''}${minYear ? minYear.parameter : ''}${maxYear ? maxYear.parameter : ''}`,
-      `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
-      `${minEngineSize ? minEngineSize.parameter : ''}${maxEngineSize ? maxEngineSize.parameter : ''}${acceleration ? acceleration.parameter : ''}${gearbox ? gearbox.parameter : ''}`,
-      `${drivetrain ? drivetrain.parameter : ''}${emissions ? emissions.parameter : ''}${doors ? doors.parameter : ''}${minSeats ? minSeats.parameter : ''}${maxSeats ? maxSeats.parameter : ''}`,
-      `${insurance ? insurance.parameter : ''}${annualTax ? annualTax.parameter : ''}${colour ? colour.parameter : ''}${excludeWriteOffs ? excludeWriteOffs.parameter : ''}`,
-      `${onlyWriteOffs ? onlyWriteOffs.parameter : ''}${customKeywords ? customKeywords.parameter : ''}${page ? page.parameter : ''}`].join('')
-  }
-
-  async fetchListings(url) {
-    const content = await fetch(url)
-      .then(res => res.text())
-      .then((body) => {
-        return body
-      })
-    if (!content) return false
-    const $ = cheerio.load(content)
-    const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
-    const listings = $('li.search-page__result').map((i, el) => {
-      return new Listing(el).get()
-    }).get()
-    return listings
+  async searchFor(criteria) {
+    const search = new Search(criteria)
+    const results = await search.execute()
+    return results
   }
 
   async fetchAdvert(url) {
@@ -179,6 +123,97 @@ class AutoTraderScraper {
       const $ = cheerio.load(content)
       const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
       return advert.get()
+    }
+  }
+}
+
+class Search {
+  constructor(criteria) {
+    this.criteria = criteria
+  }
+
+  _buildSearchURL() {
+    try {
+      if (!this.criteria.location.postcode) throw('Cannot build valid search URL due to missing postcode')
+      const radius = this.criteria.location.radius ? new Criteria('radius', this.criteria.location.radius) : null
+      const postcode = this.criteria.location.postcode ? new Criteria('postcode', this.criteria.location.postcode) : null
+      const condition = this.criteria.condition ? new Criteria('condition', this.criteria.condition) : null
+      const minPrice = this.criteria.price.min ? new Criteria('minPrice', this.criteria.price.min) : null
+      const maxPrice = this.criteria.price.max ? new Criteria('maxPrice', this.criteria.price.max) : null
+      const make = this.criteria.make ? new Criteria('make', this.criteria.make) : null
+      const model = this.criteria.model ? new Criteria('model', this.criteria.model) : null
+      const variant = this.criteria.variant ? new Criteria('variant', this.criteria.variant) : null
+      const minYear = this.criteria.year.min ? new Criteria('minYear', this.criteria.year.min): null
+      const maxYear = this.criteria.year.max ? new Criteria('maxYear', this.criteria.year.max): null
+      const minMileage = this.criteria.mileage.min ? new Criteria('minMileage', this.criteria.mileage.min) : null
+      const maxMileage = this.criteria.mileage.max ? new Criteria('maxMileage', this.criteria.mileage.max) : null
+      const body = this.criteria.body ? new Criteria('body', this.criteria.body) : null
+      const fuelType = this.criteria.fuel.type ? new Criteria('fuelType', this.criteria.fuel.type) : null
+      const fuelConsumption = this.criteria.fuel.consumption ? new Criteria('fuelConsumption', this.criteria.fuel.consumption) : null
+      const minEngineSize = this.criteria.engine.min ? new Criteria('minEngineSize', this.criteria.engine.min) : null
+      const maxEngineSize = this.criteria.engine.max ? new Criteria('maxEngineSize', this.criteria.engine.max) : null
+      const acceleration = this.criteria.acceleration ? new Criteria('acceleration', this.criteria.acceleration) : null
+      const gearbox = this.criteria.gearbox ? new Criteria('gearbox', this.criteria.gearbox) : null
+      const drivetrain = this.criteria.drivetrain ? new Criteria('drivetrain', this.criteria.drivetrain) : null
+      const emissions = this.criteria.emissions ? new Criteria('emissions', this.criteria.emissions) : null
+      const doors = this.criteria.doors ? new Criteria('doors', this.criteria.doors) : null
+      const minSeats = this.criteria.seats.min ? new Criteria('minSeats', this.criteria.seats.min) : null
+      const maxSeats = this.criteria.seats.max ? new Criteria('maxSeats', this.criteria.seats.max) : null
+      const insurance = this.criteria.insurance ? new Criteria('insuranceGroup', this.criteria.insurance) : null
+      const annualTax = this.criteria.tax ? new Criteria('annualTax', this.criteria.tax) : null
+      const colour = this.criteria.colour ? new Criteria('colour', this.criteria.colour): null
+      const excludeWriteOffs = this.criteria.excludeWriteOffs ? new Criteria('excludeWriteOffs', true) : null
+      const onlyWriteOffs = this.criteria.onlyWriteOffs ? new Criteria('onlyWriteOffs', true) : null
+      const customKeywords = this.criteria.customKeywords ? new Criteria('customKeywords', this.criteria.customKeywords) : null
+      const page = this.criteria.pageNumber ? new Criteria('page', this.criteria.pageNumber) : null
+      return [`https://www.autotrader.co.uk/car-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
+        `${variant ? variant.parameter : ''}${minPrice ? minPrice.parameter : ''}${maxPrice ? maxPrice.parameter : ''}${minYear ? minYear.parameter : ''}${maxYear ? maxYear.parameter : ''}`,
+        `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
+        `${minEngineSize ? minEngineSize.parameter : ''}${maxEngineSize ? maxEngineSize.parameter : ''}${acceleration ? acceleration.parameter : ''}${gearbox ? gearbox.parameter : ''}`,
+        `${drivetrain ? drivetrain.parameter : ''}${emissions ? emissions.parameter : ''}${doors ? doors.parameter : ''}${minSeats ? minSeats.parameter : ''}${maxSeats ? maxSeats.parameter : ''}`,
+        `${insurance ? insurance.parameter : ''}${annualTax ? annualTax.parameter : ''}${colour ? colour.parameter : ''}${excludeWriteOffs ? excludeWriteOffs.parameter : ''}`,
+        `${onlyWriteOffs ? onlyWriteOffs.parameter : ''}${customKeywords ? customKeywords.parameter : ''}${page ? page.parameter : ''}`].join('')
+    } catch(e) {
+      console.error(e)
+      return false
+    }
+  }
+
+  set criteria(newCriteria) {
+    if (this._criteria) {
+      const oldCriteria = this._criteria
+      this._criteria = Object.assign(oldCriteria, newCriteria)
+    } else {
+      this._criteria = newCriteria
+    }
+  }
+
+  get criteria() {
+    return this._criteria
+  }
+
+  get url() {
+    return this._buildSearchURL(this.criteria)
+  }
+
+  async execute() {
+    try {
+      if (!this.url) throw('Cannot execute search due to invalid search URL')
+      const content = await fetch(this.url)
+        .then(res => res.text())
+        .then((body) => {
+          return body
+        })
+      if (!content) return false
+      const $ = cheerio.load(content)
+      const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
+      const listings = $('li.search-page__result').map((i, el) => {
+        return new Listing(el).get()
+      }).get()
+      return listings
+    } catch(e) {
+      console.error(e)
+      return false
     }
   }
 }
