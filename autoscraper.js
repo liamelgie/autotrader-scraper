@@ -38,6 +38,11 @@ class AutoTraderScraper {
       return false
     }
   }
+
+  async exit() {
+    await nightmare.end()
+  }
+
   async search(criteria) {
     const url = this._buildSearchURL(criteria)
     const listings = await this.fetchListings(url)
@@ -118,7 +123,7 @@ class AutoTraderScraper {
       }
       const content = await nightmare.evaluate(function() {
         return document.body.innerHTML
-      }).end()
+      })
       const $ = cheerio.load(content)
       const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
       return advert.get()
@@ -133,7 +138,7 @@ class AutoTraderScraper {
       if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
       const content = await nightmare.evaluate(function() {
         return document.body.innerHTML
-      }).end()
+      })
       const $ = cheerio.load(content)
       const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
       return advert.get()
