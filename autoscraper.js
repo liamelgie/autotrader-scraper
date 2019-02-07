@@ -46,6 +46,40 @@ class AutoTraderScraper {
     this.loggedIn = false
   }
 
+  async saveAdvert(url) {
+    if (!this.loggedIn) {
+      console.error('Could not save advert as no account is logged in.')
+      return false
+    }
+    const saved = await nightmare
+      .goto(url)
+      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
+      .evaluate(() => {
+        if (document.querySelector('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium > span:nth-child(2)').innerHTML === 'Saved') {
+          return true
+        }
+      })
+    if (saved) return true
+    else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
+  }
+
+  async unsaveAdvert(url) {
+    if (!this.loggedIn) {
+      console.error('Could not unsave advert as no account is logged in.')
+      return false
+    }
+    const unsaved = await nightmare
+      .goto(url)
+      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
+      .evaluate(() => {
+        if (document.querySelector('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium > span:nth-child(2)').innerHTML === 'Save &amp; compare') {
+          return true
+        }
+      })
+    if (unsaved) return true
+    else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
+  }
+
   async search(criteria) {
     const url = this._buildSearchURL(criteria)
     const listings = await this.fetchListings(url)
