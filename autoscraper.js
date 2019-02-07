@@ -81,14 +81,14 @@ class AutoTraderScraper {
   }
 
   async searchFor(criteria) {
-    const search = new Search(criteria)
+    const search = new Search({ criteria })
     const results = await search.execute()
     return results
   }
 
-  async getListings(searchURL) {
-    const search = new Search()
-    const results = await search.execute(searchURL)
+  async getListings(prebuiltURL) {
+    const search = new Search({ prebuiltURL })
+    const results = await search.execute()
     return results
   }
 
@@ -134,8 +134,9 @@ class AutoTraderScraper {
 }
 
 class Search {
-  constructor(criteria) {
-    this.criteria = criteria ? criteria : {}
+  constructor(options) {
+    this.criteria = options.criteria ? options.criteria : {}
+    this.prebuiltURL = options.prebuiltURL ? options.prebuiltURL : ''
   }
 
   _buildSearchURL() {
@@ -202,6 +203,15 @@ class Search {
     return this._buildSearchURL(this.criteria)
   }
 
+  set prebuiltURL(url) {
+    if (this._validatePrebuiltURL(url)) this._prebuiltURL = url
+    else this._prebuiltURL = false
+  }
+
+  get prebuiltURL() {
+    return this._prebuiltURL
+  }
+
   _validatePrebuiltURL(prebuiltURL) {
       if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?')) {
         return true
@@ -210,13 +220,12 @@ class Search {
       }
   }
 
-  async execute(prebuiltURL) {
+  async execute() {
     try {
+      // TODO: Consider refactoring into ternary
       let searchURL = ''
-      if (prebuiltURL) {
-        if (this._validatePrebuiltURL(prebuiltURL)) {
-          searchURL = prebuiltURL
-        }
+      if (this.prebuiltURL) {
+        searchURL = this.prebuiltURL
       } else if (this.url) {
         searchURL = this.url
       } else {
