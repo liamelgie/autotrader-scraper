@@ -86,6 +86,12 @@ class AutoTraderScraper {
     return results
   }
 
+  async getListings(searchURL) {
+    const search = new Search()
+    const results = await search.execute(searchURL)
+    return results
+  }
+
   async fetchAdvert(url) {
     const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
     if (condition === 'Used') {
@@ -129,7 +135,7 @@ class AutoTraderScraper {
 
 class Search {
   constructor(criteria) {
-    this.criteria = criteria
+    this.criteria = criteria ? criteria : {}
   }
 
   _buildSearchURL() {
@@ -196,10 +202,27 @@ class Search {
     return this._buildSearchURL(this.criteria)
   }
 
-  async execute() {
+  _validatePrebuiltURL(prebuiltURL) {
+      if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?')) {
+        return true
+      } else {
+        return false
+      }
+  }
+
+  async execute(prebuiltURL) {
     try {
-      if (!this.url) throw('Cannot execute search due to invalid search URL')
-      const content = await fetch(this.url)
+      let searchURL = ''
+      if (prebuiltURL) {
+        if (this._validatePrebuiltURL(prebuiltURL)) {
+          searchURL = prebuiltURL
+        }
+      } else if (this.url) {
+        searchURL = this.url
+      } else {
+        throw('Cannot execute search due to invalid search URL')
+      }
+      const content = await fetch(searchURL)
         .then(res => res.text())
         .then((body) => {
           return body
