@@ -5,6 +5,7 @@ const fetch = require('node-fetch')
 
 class AutoTraderScraper {
   constructor() {
+    this.loggedIn = false
   }
 
   async login(credentials) {
@@ -16,6 +17,7 @@ class AutoTraderScraper {
         .type('input#signin-password', credentials.password)
         .click('input#signInSubmit')
         .wait('#my-profile-content')
+      this.loggedIn = true
         // TODO: Detect failed login attempt due to invalid credentials
     } catch(e) {
       console.error('Could not login due to the following:')
@@ -31,7 +33,7 @@ class AutoTraderScraper {
       if (await nightmare.exists('#ursSignoutForm > button')) await nightmare.click('#ursSignoutForm > button')
       else throw('Button is not present on the page.')
       await nightmare.wait('.header__sign-in')
-      console.log('Logged out')
+      this.loggedIn = false
     } catch(e) {
       console.error('Could not logout due to the following:')
       console.error(e)
@@ -41,6 +43,7 @@ class AutoTraderScraper {
 
   async exit() {
     await nightmare.end()
+    this.loggedIn = false
   }
 
   async search(criteria) {
