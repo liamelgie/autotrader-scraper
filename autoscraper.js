@@ -11,18 +11,33 @@ class AutoTraderScraper {
     try {
       await nightmare
         .goto('https://www.autotrader.co.uk/secure/signin')
+        .wait('input#signInSubmit')
         .type('input#signin-email', credentials.email)
         .type('input#signin-password', credentials.password)
         .click('input#signInSubmit')
+        .wait('#my-profile-content')
         // TODO: Detect failed login attempt due to invalid credentials
     } catch(e) {
       console.error('Could not login due to the following:')
       console.error(e)
       console.error('Exiting...')
       nightmare.end()
+      return false
     }
   }
 
+  async logout() {
+    try {
+      if (await nightmare.exists('#ursSignoutForm > button')) await nightmare.click('#ursSignoutForm > button')
+      else throw('Button is not present on the page.')
+      await nightmare.wait('.header__sign-in')
+      console.log('Logged out')
+    } catch(e) {
+      console.error('Could not logout due to the following:')
+      console.error(e)
+      return false
+    }
+  }
   async search(criteria) {
     const url = this._buildSearchURL(criteria)
     const listings = await this.fetchListings(url)
