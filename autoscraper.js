@@ -1,11 +1,26 @@
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 20, width: 1400 })
+const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1 })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
 class AutoTraderScraper {
   constructor() {
+  }
 
+  async login(credentials) {
+    try {
+      await nightmare
+        .goto('https://www.autotrader.co.uk/secure/signin')
+        .type('input#signin-email', credentials.email)
+        .type('input#signin-password', credentials.password)
+        .click('input#signInSubmit')
+        // TODO: Detect failed login attempt due to invalid credentials
+    } catch(e) {
+      console.error('Could not login due to the following:')
+      console.error(e)
+      console.error('Exiting...')
+      nightmare.end()
+    }
   }
 
   async search(criteria) {
