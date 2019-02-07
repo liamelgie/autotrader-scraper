@@ -246,7 +246,7 @@ class Criteria {
         return this.validate() ? `&price-to=${this.value}` : ''
         break
       case 'make':
-        return `&make=${encodeURIComponent(this.value.toUpperCase())}`
+        return this.validate() ? `&make=${encodeURIComponent(this.value.toUpperCase())}` : ''
         break
       case 'model':
         return `&model=${encodeURIComponent(this.value.toUpperCase())}`
@@ -340,6 +340,9 @@ class Criteria {
       case 'page':
         return /[0-9]+/.test(this.value)
         break
+      case 'make':
+        const VALID_MAKES = ['ABARTH', 'ALFA ROMEO', 'AUDI', 'AUSTIN', 'BEAUFORD', 'BENTLEY', 'BMW', 'CADILLAC', 'CATERHAM', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'CUPRA', 'DACIA', 'DAEWOO', 'DAIHATSU', 'DAIMLER', 'DODGE', 'DS AUTOMOBILES', 'FERRARI', 'FIAT', 'FORD', 'GREAT WALL', 'HONDA', 'HYUNDAI', 'INFINITI', 'ISUZU', 'JAGUAR', 'JEEP', 'KIA', 'LAMBORGINI', 'LAND ROVER', 'LEXUS', 'LOTUS', 'MASERATI', 'MAYBACH', 'MAZDA', 'MCLAREN', 'MERCEDES-BENZ', 'MG', 'MINI', 'MITSUBISHI', 'MORGAN', 'NG', 'NISSAN', 'OPEL', 'PEUGEOT', 'PROTON', 'QUANTUM', 'RENAULT', 'ROLLS-ROYCE', 'ROVER', 'SAAB', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'STANDARD', 'SUBARU', 'SUZUKI', 'TOYOTA', 'TRIUMPH', 'TVR', 'VAUXHALL', 'VOLKSWAGEN', 'VOLVO']
+        return VALID_MAKES.includes(this.value)
       case 'body':
         const VALID_BODY_TYPES = ['Convertible', 'Coupe', 'Estate', 'Hatchback', 'MPV', 'Other', 'Pickup', 'SUV', 'Unlisted']
         return VALID_BODY_TYPES.includes(this.value)
