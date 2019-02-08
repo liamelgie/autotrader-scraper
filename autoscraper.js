@@ -437,25 +437,62 @@ class Advert {
     if (!node) return null
     this.$ = cheerio.load(node)
     this.condition = condition
-    if (condition === 'Used') {
-      this.title = this.$('.advert-heading__title').text()
-      this.price = this.$('.advert-price__cash-price').text()
-      this.description = this.$('.fpa__description').text()
-      // TODO: Currently only grabs the first two images as they are pulled from the server once the user clicks through the gallery. Find a way around this.
-      this.images = this.$('section.gallery').find('ul.gallery__items-list').find('li').map((i, el) => {
+    if (this.condition === 'Used') this._getUsedCarData()
+    else this._getNewCarData()
+  }
+
+  _getUsedCarData() {
+    this.title = this.$('.advert-heading__title').text()
+    this.price = this.$('.advert-price__cash-price').text()
+    this.description = this.$('.fpa__description').text()
+    this.images = this._getImages()
+    this.rating = {
+      owner: this.$('section.stars__owner-rating--small').next('span.review-links__rating').text(),
+      autotrader: this.$('section.stars__expert-rating--small').next('span.review-links__rating').text()
+    }
+    this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+      return this.$(el).text().replace(/\n/g, '').trim()
+    }).get()
+    this.comesWith = this.$('ul.combined-features__features-list').find('li').map((i, el) => {
+      return this.$(el).text()
+    }).get()
+    this.techSpecs = this._getTechSpecs()
+    this.seller = this._getSeller()
+  }
+
+  _getNewCarData() {
+    this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
+    this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
+    this.images = this._getImages()
+    this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+      return this.$(el).text().replace(/\n/g, '').trim()
+    }).get()
+    this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
+      return this.$(el).text().replace(/\n/g, '').trim()
+    }).get()
+    this.techSpecs = this._getTechSpecs()
+    this.review = this._getReview()
+    this.seller = this._getSeller()
+  }
+
+  // TODO: Consider further refactoring to use ternary logic
+  // TODO: Currently only grabs the first two images as they are pulled from the server once the user clicks through the gallery. Find a way around this.
+  _getImages() {
+    if (this.condition === 'Used') {
+      return this.$('section.gallery').find('ul.gallery__items-list').find('li').map((i, el) => {
         return this.$(el).find('img').attr('src')
       }).get()
-      this.rating = {
-        owner: this.$('section.stars__owner-rating--small').next('span.review-links__rating').text(),
-        autotrader: this.$('section.stars__expert-rating--small').next('span.review-links__rating').text()
-      }
-      this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
-        return this.$(el).text().replace(/\n/g, '').trim()
+    } else {
+      return this.$('.gallery__items-list').find('li').map((i, el) => {
+        return this.$(el).find('img').attr('src')
       }).get()
-      this.comesWith = this.$('ul.combined-features__features-list').find('li').map((i, el) => {
-        return this.$(el).text()
-      }).get()
-      this.techSpecs = this._convertTechSpecArraysToObjects(this.$('section.tech-specs').find('div.expander').map((i, el) => {
+    }
+  }
+
+  // TODO: Consider further refactoring to use ternary logic
+  _getTechSpecs() {
+    if (this.condition === 'Used') {
+      return this._convertTechSpecArraysToObjects(this.$('section.tech-specs').find('div.expander').map((i, el) => {
         const key = this._parseTechSpecKey(this.$(el).find('button.expander__heading').find('span').text())
         const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
         const points = data.map((i, el) => {
@@ -464,27 +501,9 @@ class Advert {
         }).get()
         return { [key]: points }
       }).get())
-      this.seller = {
-        name: this.$('.seller-name__link').first().text(),
-        location: this.$('.seller-locations__town').text(),
-        number: this.$('.seller-numbers').text(),
-        rating: this.$('.review-links__rating').first().text(),
-        description: this.$('#about-seller > p').text()
-      }
     } else {
-      this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
-      this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
-      this.images = this.$('.gallery__items-list').find('li').map((i, el) => {
-        return this.$(el).find('img').attr('src')
-      }).get()
-      this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
-        return this.$(el).text().replace(/\n/g, '').trim()
-      }).get()
-      this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
-        return this.$(el).text().replace(/\n/g, '').trim()
-      }).get()
-      this.techSpecs = this._convertTechSpecArraysToObjects(this.$('div.tech-specs').find('div.expander').map((i, el) => {
-        const key = this._parseTechSpecKey(this.$(el).find('h3').text())
+      return this._convertTechSpecArraysToObjects(this.$('div.tech-specs').find('div.expander').map((i, el) => {
+        const key = this._parseTechSpecKey(this.$(el).find('h3.expander__header').text())
         const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
         const points = data.map((i, el) => {
           if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
@@ -492,21 +511,6 @@ class Advert {
         }).get()
         return { [key]: points }
       }).get())
-      this.review = {
-        score: this.$('.review-holder').find('.starRating__number').first().text(),
-        blurb: this.$('.review-holder').find('.atc-type-picanto').first().text(),
-        pros: this.$('.review-holder').find('.pro-list').find('li').map((i, el) => {
-          return this.$(el).text().replace(/\n/g, '').trim()
-        }).get(),
-        cons: this.$('.review-holder').find('.con-list').find('li').map((i, el) => {
-          return this.$(el).text().replace(/\n/g, '').trim()
-        }).get(),
-      }
-      this.seller = {
-        name: this.$('.dealer-details--full').find('#dealer-name').text(),
-        rating: this.$('.dealer-details--full').find('.dealer__overall-rating-score').text(),
-        description: this.$('.dealer-details--full').find('.atc-type-picanto').text(),
-      }
     }
   }
 
@@ -597,6 +601,43 @@ class Advert {
       case 'Annual tax':
         return 'annualTax'
         break
+    }
+  }
+
+  // TODO: Consider further refactoring to use ternary logic
+  _getReview() {
+    if (this.condition === 'Used') {
+      return null
+    } else {
+      return {
+        score: this.$('.review-holder').find('.starRating__number').first().text(),
+        blurb: this.$('.review-holder').find('.atc-type-picanto').first().text(),
+        pros: this.$('.review-holder').find('.pro-list').find('li').map((i, el) => {
+          return this.$(el).text().replace(/\n/g, '').trim()
+        }).get(),
+        cons: this.$('.review-holder').find('.con-list').find('li').map((i, el) => {
+          return this.$(el).text().replace(/\n/g, '').trim()
+        }).get()
+      }
+    }
+  }
+
+  // TODO: Consider further refactoring to use ternary logic
+  _getSeller() {
+    if (this.condition === 'Used') {
+      return {
+        name: this.$('.seller-name__link').first().text(),
+        location: this.$('.seller-locations__town').text(),
+        number: this.$('.seller-numbers').text(),
+        rating: this.$('.review-links__rating').first().text(),
+        description: this.$('#about-seller > p').text()
+      }
+    } else {
+      return {
+        name: this.$('.dealer-details--full').find('#dealer-name').text(),
+        rating: this.$('.dealer-details--full').find('.dealer__overall-rating-score').text(),
+        description: this.$('.dealer-details--full').find('.atc-type-picanto').text(),
+      }
     }
   }
 
