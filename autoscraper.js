@@ -92,7 +92,7 @@ class AutoTraderScraper {
     return results
   }
 
-  async fetchAdvert(url) {
+  async getAdvert(url) {
     const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
     if (condition === 'Used') {
       // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
