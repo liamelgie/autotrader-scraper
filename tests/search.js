@@ -5,7 +5,7 @@ async function init() {
   let criteria = {
     location: {
       radius: 1500,
-      postcode: "WC1X0HS"
+      postcode: "BH317LE"
     },
     make: 'FORD',
     model: 'KUGA',
@@ -49,6 +49,8 @@ async function init() {
     customKeywords: '',
     pageNumber: '1'
   }
-  console.log(await a.search(criteria))
+  await a.searchFor(criteria)
+  .then(listings => listings.literals)
+  .then(literals => console.log(literals))
 }
 init()
