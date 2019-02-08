@@ -111,6 +111,12 @@ class AutoTraderScraper {
         if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
       })
     }
+    // Tech Specs/Comes With
+    if (await nightmare.exists('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container')) {
+      await nightmare
+      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > div > div > div > ul')
+      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > section')
+    }
     const content = await nightmare.evaluate(function() {
       return document.body.innerHTML
     })
@@ -128,6 +134,8 @@ class AutoTraderScraper {
     if (await nightmare.exists('.review-holder')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > section > div:nth-child(1) > p')
     // Standard Features
     if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
+    // Tech Specs
+    if (await nightmare.exists('#app > main > div.configurator-light > div:nth-child(1) > section > div.tech-specs')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.tech-specs > span')
     const content = await nightmare.evaluate(function() {
       return document.body.innerHTML
     })
