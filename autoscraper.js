@@ -672,7 +672,7 @@ class Listing {
     this.img = this.$('img').attr('src')
   }
 
-  get() {
+  get literal() {
     return {
       title: this.title,
       price: this.price,
@@ -684,7 +684,7 @@ class Listing {
     }
   }
 
-  json() {
+  get json() {
     return JSON.stringify({
       title: this.title,
       price: this.price,
@@ -704,13 +704,13 @@ class ListingCollection {
 
   get literals() {
     return this.listings.map((listing) => {
-      return listing.get()
+      return listing.literal
     })
   }
 
   get json() {
     return this.listings.map((listing) => {
-      return listing.json()
+      return listing.json
     })
   }
 }
