@@ -94,42 +94,47 @@ class AutoTraderScraper {
 
   async getAdvert(url) {
     const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
-    if (condition === 'Used') {
-      // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
-      await nightmare
-        .goto(url)
-        .wait('div.fpa__wrapper')
-      // Seller Information
-      if (await nightmare.exists('#about-seller')) await nightmare.wait('#about-seller > p > button').click('#about-seller > p > button')
-      // Review Information
-      if (await nightmare.exists('div.review-links')) {
-        await nightmare.wait('div.review-links').then(async () => {
-          const buttonID = '#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button'
-          if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
-        })
-      }
-      const content = await nightmare.evaluate(function() {
-        return document.body.innerHTML
+    return condition === 'Used' ? this._getUsedCarAdvert(url) : this._getNewCarAdvert(url)
+  }
+
+  async _getUsedCarAdvert(url) {
+    // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
+    await nightmare
+      .goto(url)
+      .wait('div.fpa__wrapper')
+    // Seller Information
+    if (await nightmare.exists('#about-seller') && await nightmare.exists('#about-seller > p > button')) await nightmare.click('#about-seller > p > button')
+    // Review Information
+    if (await nightmare.exists('div.review-links')) {
+      await nightmare.wait('div.review-links').then(async () => {
+        const buttonID = '#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button'
+        if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
       })
-      const $ = cheerio.load(content)
-      const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
-      return advert
-    } else {
-      await nightmare
-        .goto(url)
-        .wait('.non-fpa-stock-page')
-        .wait('.dealer-details--full')
-      // AutoTrader Review
-      if (await nightmare.exists('.review-holder')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > section > div:nth-child(1) > p')
-      // Standard Features
-      if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
-      const content = await nightmare.evaluate(function() {
-        return document.body.innerHTML
-      })
-      const $ = cheerio.load(content)
-      const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
-      return advert
     }
+    await nightmare.wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > section > div.expander.tech-specs__expander.tech-specs__economy > button')
+    const content = await nightmare.evaluate(function() {
+      return document.body.innerHTML
+    })
+    const $ = cheerio.load(content)
+    const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), 'Used')
+    return advert
+  }
+
+  async _getNewCarAdvert(url) {
+    await nightmare
+      .goto(url)
+      .wait('.non-fpa-stock-page')
+      .wait('.dealer-details--full')
+    // AutoTrader Review
+    if (await nightmare.exists('.review-holder')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > section > div:nth-child(1) > p')
+    // Standard Features
+    if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
+    const content = await nightmare.evaluate(function() {
+      return document.body.innerHTML
+    })
+    const $ = cheerio.load(content)
+    const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), 'New')
+    return advert
   }
 }
 
