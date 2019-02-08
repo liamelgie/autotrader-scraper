@@ -111,7 +111,6 @@ class AutoTraderScraper {
         if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
       })
     }
-    await nightmare.wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > section > div.expander.tech-specs__expander.tech-specs__economy > button')
     const content = await nightmare.evaluate(function() {
       return document.body.innerHTML
     })
