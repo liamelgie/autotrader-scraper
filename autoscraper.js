@@ -239,10 +239,9 @@ class Search {
       if (!content) return false
       const $ = cheerio.load(content)
       const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
-      const listings = $('li.search-page__result').map((i, el) => {
-        return new Listing(el).get()
-      }).get()
-      return listings
+      return new ListingCollection($('li.search-page__result').map((i, el) => {
+        return new Listing(el)
+      }).get())
     } catch(e) {
       console.error(e)
       return false
@@ -694,6 +693,24 @@ class Listing {
       description: this.description,
       location: this.location,
       img: this.img
+    })
+  }
+}
+
+class ListingCollection {
+  constructor(listings) {
+    this.listings = listings ? listings : []
+  }
+
+  get literals() {
+    return this.listings.map((listing) => {
+      return listing.get()
+    })
+  }
+
+  get json() {
+    return this.listings.map((listing) => {
+      return listing.json()
     })
   }
 }
