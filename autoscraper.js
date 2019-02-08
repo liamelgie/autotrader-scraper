@@ -113,7 +113,7 @@ class AutoTraderScraper {
       })
       const $ = cheerio.load(content)
       const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), condition)
-      return advert.get()
+      return advert
     } else {
       await nightmare
         .goto(url)
@@ -128,7 +128,7 @@ class AutoTraderScraper {
       })
       const $ = cheerio.load(content)
       const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), condition)
-      return advert.get()
+      return advert
     }
   }
 }
@@ -641,7 +641,7 @@ class Advert {
     }
   }
 
-  get() {
+  get literal() {
     return this.condition === 'Used' ? {
       title: this.title,
       price: this.price,
@@ -666,7 +666,7 @@ class Advert {
     }
   }
 
-  json() {
+  get json() {
     return this.used ? JSON.stringify({
       title: this.title,
       price: this.price,
