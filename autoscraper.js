@@ -515,8 +515,8 @@ class Advert {
 
   _convertTechSpecArraysToObjects(array) {
     const object = Object.assign({}, ...array)
-    object.economyAndPerformance = Object.assign({}, ...object.economyAndPerformance)
-    object.dimensions = Object.assign({}, ...object.dimensions)
+    if (object.economyAndPerformance) object.economyAndPerformance = Object.assign({}, ...object.economyAndPerformance)
+    if (object.dimensions) object.dimensions = Object.assign({}, ...object.dimensions)
     return object
   }
 
