@@ -171,6 +171,8 @@ class Search {
       const maxYear = this.criteria.year ? this.criteria.year.max ? new Criteria('maxYear', this.criteria.year.max) : null : null
       const minMileage = this.criteria.mileage ? this.criteria.mileage.min ? new Criteria('minMileage', this.criteria.mileage.min) : null : null
       const maxMileage = this.criteria.mileage ? this.criteria.mileage.max ? new Criteria('maxMileage', this.criteria.mileage.max) : null : null
+      const wheelbase = this.criteria.wheelbase ? new Criteria('wheelbase', this.criteria.wheelbase) : null
+      const cab = this.criteria.cab ? new Criteria('cab', this.criteria.cab) : null
       const body = this.criteria.body ? new Criteria('body', this.criteria.body) : null
       const fuelType = this.criteria.fuel ? this.criteria.fuel.type ? new Criteria('fuelType', this.criteria.fuel.type) : null : null
       const fuelConsumption = this.criteria.fuel ? this.criteria.fuel.consumption ? new Criteria('fuelConsumption', this.criteria.fuel.consumption) : null : null
@@ -192,7 +194,7 @@ class Search {
       const page = this.criteria.pageNumber ? new Criteria('page', this.criteria.pageNumber) : null
       return [`https://www.autotrader.co.uk/${this.type}-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
         `${variant ? variant.parameter : ''}${minPrice ? minPrice.parameter : ''}${maxPrice ? maxPrice.parameter : ''}${minYear ? minYear.parameter : ''}${maxYear ? maxYear.parameter : ''}`,
-        `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
+        `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${wheelbase ? wheelbase.parameter : ''}${cab ? cab.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
         `${minEngineSize ? minEngineSize.parameter : ''}${maxEngineSize ? maxEngineSize.parameter : ''}${acceleration ? acceleration.parameter : ''}${gearbox ? gearbox.parameter : ''}`,
         `${drivetrain ? drivetrain.parameter : ''}${emissions ? emissions.parameter : ''}${doors ? doors.parameter : ''}${minSeats ? minSeats.parameter : ''}${maxSeats ? maxSeats.parameter : ''}`,
         `${insurance ? insurance.parameter : ''}${annualTax ? annualTax.parameter : ''}${colour ? colour.parameter : ''}${excludeWriteOffs ? excludeWriteOffs.parameter : ''}`,
@@ -314,6 +316,12 @@ class Criteria {
       case 'maxMileage':
         return this.validate() ? `&maximum-mileage=${this.value}` : ''
         break
+      case 'wheelbase':
+        return this.validate() ? `&wheelbase=${encodeURIComponent(this.value)}` : ''
+        break
+      case 'cab':
+        return this.validate() ? `&cab-type=${encodeURIComponent(this.value)}` : ''
+        break
       case 'body':
         return this.validate() ? `&body-type=${encodeURIComponent(this.value)}` : ''
         break
@@ -394,6 +402,14 @@ class Criteria {
       case 'body':
         const VALID_BODY_TYPES = ['Convertible', 'Coupe', 'Estate', 'Hatchback', 'MPV', 'Other', 'Pickup', 'SUV', 'Box Van', 'Camper', 'Car Derived Van', 'Chassis Cab', 'Combi Van', 'Combi +', 'Crew Cab', 'Curtain Side', 'Dropside', 'Glass Van', 'High Roof Van', 'King Cab', 'Low Loader', 'Luton', 'MPV', 'Medium', 'Minibus', 'Panel Van', 'Platform Cab', 'Specialist Vehicle', 'Temperature Controlled', 'Tipper', 'Vehicle Transporter', 'Window Van', 'Unlisted']
         return VALID_BODY_TYPES.includes(this.value)
+        break
+      case 'wheelbase':
+        const VALID_WHEELBASE_TYPES = ['L', 'LWB', 'M', 'MWB', 'S', 'SWB', '{Wheel base unlisted}']
+        return VALID_WHEELBASE_TYPES.includes(this.value)
+        break
+      case 'cab':
+        const VALID_CAB_TYPES = ['Crew cab', 'Day cab', 'Double cab', 'High sleeper cab', 'Low access cab', 'N', 'Short cab', 'Single cab', 'Standard cab', 'Transporter cab', '{Cab type unlisted}']
+        return VALID_CAB_TYPES.includes(this.value)
         break
       case 'fuelType':
         const VALID_FUEL_TYPES = ['Bi Fuel', 'Diesel', ' Electric', 'Hybrid - Diesel/Electric', 'Hybrid - Diesel/Electric Plug-in', 'Hybrid - Petrol/Electric', 'Hybrid - Petrol/Electric Plug-in', 'Petrol', 'Petrol Ethanol', 'Unlisted']
