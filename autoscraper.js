@@ -389,10 +389,10 @@ class Criteria {
         return /[0-9]+/.test(this.value)
         break
       case 'make':
-        const VALID_MAKES = ['ABARTH', 'ALFA ROMEO', 'AUDI', 'AUSTIN', 'BEAUFORD', 'BENTLEY', 'BMW', 'CADILLAC', 'CATERHAM', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'CUPRA', 'DACIA', 'DAEWOO', 'DAIHATSU', 'DAIMLER', 'DODGE', 'DS AUTOMOBILES', 'FERRARI', 'FIAT', 'FORD', 'GREAT WALL', 'HONDA', 'HYUNDAI', 'INFINITI', 'ISUZU', 'JAGUAR', 'JEEP', 'KIA', 'LAMBORGINI', 'LAND ROVER', 'LEXUS', 'LOTUS', 'MASERATI', 'MAYBACH', 'MAZDA', 'MCLAREN', 'MERCEDES-BENZ', 'MG', 'MINI', 'MITSUBISHI', 'MORGAN', 'NG', 'NISSAN', 'OPEL', 'PEUGEOT', 'PROTON', 'QUANTUM', 'RENAULT', 'ROLLS-ROYCE', 'ROVER', 'SAAB', 'SEAT', 'SKODA', 'SMART', 'SSANGYONG', 'STANDARD', 'SUBARU', 'SUZUKI', 'TOYOTA', 'TRIUMPH', 'TVR', 'VAUXHALL', 'VOLKSWAGEN', 'VOLVO']
+        const VALID_MAKES = ['ABARTH', 'AIXAM', 'ALFA ROMEO', 'AUDI', 'AUSTIN', 'BEAUFORD', 'BENTLEY', 'BMW', 'CADILLAC', 'CATERHAM', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'CUPRA', 'DACIA', 'DAEWOO', 'DAF', 'DAIHATSU', 'DAIMLER', 'DFSK', 'DODGE', 'DS AUTOMOBILES', 'FERRARI', 'FIAT', 'FORD', 'GREAT WALL', 'HONDA', 'HYUNDAI', 'INFINITI', 'ISUZU', 'JAGUAR', 'JEEP', 'KIA', 'LAMBORGINI', 'LAND ROVER', 'LDV', 'LEXUS', 'LOTUS', 'M.A.N', 'MAN', 'MASERATI', 'MAYBACH', 'MAZDA', 'MCLAREN', 'MERCEDES-BENZ', 'MG', 'MINI', 'MITSUBISHI', 'MORGAN', 'MORRIS', 'MORRISON', 'NG', 'NISSAN', 'OPEL', 'PEUGEOT', 'PIAGGIO', 'PROTON', 'QUANTUM', 'RENAULT', 'ROLLS-ROYCE', 'ROVER', 'SAAB', 'SEAT', 'SIAC', 'SKODA', 'SANTANA', 'SMART', 'SSANGYONG', 'STANDARD', 'SUBARU', 'SUZUKI', 'TALBOT', 'TOYOTA', 'TRIUMPH', 'TVR', 'VAUXHALL', 'VOLKSWAGEN', 'VOLVO']
         return VALID_MAKES.includes(this.value)
       case 'body':
-        const VALID_BODY_TYPES = ['Convertible', 'Coupe', 'Estate', 'Hatchback', 'MPV', 'Other', 'Pickup', 'SUV', 'Unlisted']
+        const VALID_BODY_TYPES = ['Convertible', 'Coupe', 'Estate', 'Hatchback', 'MPV', 'Other', 'Pickup', 'SUV', 'Box Van', 'Camper', 'Car Derived Van', 'Chassis Cab', 'Combi Van', 'Combi +', 'Crew Cab', 'Curtain Side', 'Dropside', 'Glass Van', 'High Roof Van', 'King Cab', 'Low Loader', 'Luton', 'MPV', 'Medium', 'Minibus', 'Panel Van', 'Platform Cab', 'Specialist Vehicle', 'Temperature Controlled', 'Tipper', 'Vehicle Transporter', 'Window Van', 'Unlisted']
         return VALID_BODY_TYPES.includes(this.value)
         break
       case 'fuelType':
