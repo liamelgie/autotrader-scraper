@@ -701,6 +701,7 @@ class Listing {
     if (!node) return null
     this.$ = cheerio.load(node)
     this.title = this.$('.listing-title').text()
+    this.title = this.$('.listing-title').text().replace(/\n/g, '').trim()
     this.price = this.$('.vehicle-price').first().text()
     this.image = this.$('.listing-main-image').find('img').attr('src')
     /* FIX: the following cannot be used as the data provided by users is unpredictable. This must be addressed.
