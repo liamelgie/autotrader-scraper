@@ -701,6 +701,7 @@ class Listing {
     if (!node) return null
     this.$ = cheerio.load(node)
     this.title = this.$('.listing-title').text()
+    this.baseURL = 'https://autotrader.co.uk' + this.$('.listing-title').find('a').attr('href')
     this.title = this.$('.listing-title').text().replace(/\n/g, '').trim()
     this.price = this.$('.vehicle-price').first().text()
     this.image = this.$('.listing-main-image').find('img').attr('src')
@@ -718,10 +719,13 @@ class Listing {
     this.description = this.$('.listing-description').text()
     this.location = this.$('.seller-location').text().replace(/\n/g, '').trim()
     this.img = this.$('img').attr('src')
+  _getCleanURL() {
+    return this.baseURL.match(/^.+advert\/[0-9]+/g)[0]
   }
 
   get literal() {
     return {
+      url: this._getCleanURL(),
       title: this.title,
       price: this.price,
       image: this.image,
@@ -734,6 +738,7 @@ class Listing {
 
   get json() {
     return JSON.stringify({
+      url: this._getCleanURL(),
       title: this.title,
       price: this.price,
       image: this.image,
