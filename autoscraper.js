@@ -121,7 +121,7 @@ class AutoTraderScraper {
       return document.body.innerHTML
     })
     const $ = cheerio.load(content)
-    const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), 'Used')
+    const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), { condition: 'Used', url: url })
     return advert
   }
 
@@ -140,7 +140,7 @@ class AutoTraderScraper {
       return document.body.innerHTML
     })
     const $ = cheerio.load(content)
-    const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), 'New')
+    const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), { condition: 'New', url: url })
     return advert
   }
 }
@@ -445,10 +445,12 @@ class Criteria {
 }
 
 class Advert {
-  constructor(node, condition) {
+  constructor(node, options) {
     if (!node) return null
+    if (!options || !options.condition || !options.url) return null
     this.$ = cheerio.load(node)
-    this.condition = condition
+    this.condition = options.condition
+    this.baseURL = options.url
     if (this.condition === 'Used') this._getUsedCarData()
     else this._getNewCarData()
   }
@@ -637,8 +639,13 @@ class Advert {
     }
   }
 
+  _getCleanURL() {
+    return this.baseURL.match(/^.+advert\/[0-9]+/)[0]
+  }
+
   get literal() {
     return this.condition === 'Used' ? {
+      url: this._getCleanURL(),
       title: this.title,
       price: this.price,
       images: this.images,
@@ -650,6 +657,7 @@ class Advert {
       techSpecs: this.techSpecs,
       seller: this.seller
     } : {
+      url: this._getCleanURL(),
       title: this.title,
       price: this.price,
       images: this.images,
@@ -664,6 +672,7 @@ class Advert {
 
   get json() {
     return this.used ? JSON.stringify({
+      url: this._getCleanURL(),
       title: this.title,
       price: this.price,
       images: this.images,
@@ -674,6 +683,7 @@ class Advert {
       techSpecs: this.techSpecs,
       seller: this.seller
     }) : JSON.stringify({
+      url: this._getCleanURL(),
       title: this.title,
       price: this.price,
       images: this.images,
