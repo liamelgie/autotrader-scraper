@@ -80,8 +80,8 @@ class AutoTraderScraper {
     else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
-  async searchFor(criteria) {
-    const search = new Search({ criteria })
+  async searchFor(criteria, type) {
+    const search = new Search({ criteria, type })
     const results = await search.execute()
     return results
   }
@@ -148,6 +148,11 @@ class AutoTraderScraper {
 class Search {
   constructor(options) {
     this.criteria = options.criteria ? options.criteria : {}
+    if (options.criteria) {
+      this.type = options.type ? options.type.toLowerCase() : 'car'
+      const VALID_TYPES =['car', 'van']
+      if (!VALID_TYPES.includes(this.type)) return false
+    }
     this.prebuiltURL = options.prebuiltURL ? options.prebuiltURL : ''
   }
 
@@ -185,7 +190,7 @@ class Search {
       const onlyWriteOffs = this.criteria.onlyWriteOffs ? new Criteria('onlyWriteOffs', true) : null
       const customKeywords = this.criteria.customKeywords ? new Criteria('customKeywords', this.criteria.customKeywords) : null
       const page = this.criteria.pageNumber ? new Criteria('page', this.criteria.pageNumber) : null
-      return [`https://www.autotrader.co.uk/car-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
+      return [`https://www.autotrader.co.uk/${this.type}-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
         `${variant ? variant.parameter : ''}${minPrice ? minPrice.parameter : ''}${maxPrice ? maxPrice.parameter : ''}${minYear ? minYear.parameter : ''}${maxYear ? maxYear.parameter : ''}`,
         `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
         `${minEngineSize ? minEngineSize.parameter : ''}${maxEngineSize ? maxEngineSize.parameter : ''}${acceleration ? acceleration.parameter : ''}${gearbox ? gearbox.parameter : ''}`,
@@ -225,11 +230,11 @@ class Search {
   }
 
   _validatePrebuiltURL(prebuiltURL) {
-      if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?')) {
-        return true
-      } else {
-        return false
-      }
+    if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?') || prebuiltURL.includes('https://www.autotrader.co.uk/van-search?')) {
+      return true
+    } else {
+      return false
+    }
   }
 
   async execute() {
