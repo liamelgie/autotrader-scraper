@@ -241,15 +241,8 @@ class Search {
 
   async execute() {
     try {
-      // TODO: Consider refactoring into ternary
-      let searchURL = ''
-      if (this.prebuiltURL) {
-        searchURL = this.prebuiltURL
-      } else if (this.url) {
-        searchURL = this.url
-      } else {
-        throw('Cannot execute search due to invalid search URL')
-      }
+      let searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
+      if (!searchURL) throw('Cannot execute search due to invalid search URL')
       const content = await fetch(searchURL)
         .then(res => res.text())
         .then((body) => {
