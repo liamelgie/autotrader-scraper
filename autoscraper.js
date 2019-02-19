@@ -173,6 +173,8 @@ class Search {
       const maxMileage = this.criteria.mileage ? this.criteria.mileage.max ? new Criteria('maxMileage', this.criteria.mileage.max) : null : null
       const wheelbase = this.criteria.wheelbase ? new Criteria('wheelbase', this.criteria.wheelbase) : null
       const cab = this.criteria.cab ? new Criteria('cab', this.criteria.cab) : null
+      const minCC = this.criteria.cc ? this.criteria.cc.min ? new Criteria('minCC', this.criteria.cc.min) : null : null
+      const maxCC = this.criteria.cc ? this.criteria.cc.max ? new Criteria('maxCC', this.criteria.cc.max) : null : null
       const body = this.criteria.body ? new Criteria('body', this.criteria.body) : null
       const fuelType = this.criteria.fuel ? this.criteria.fuel.type ? new Criteria('fuelType', this.criteria.fuel.type) : null : null
       const fuelConsumption = this.criteria.fuel ? this.criteria.fuel.consumption ? new Criteria('fuelConsumption', this.criteria.fuel.consumption) : null : null
@@ -194,7 +196,7 @@ class Search {
       const page = this.criteria.pageNumber ? new Criteria('page', this.criteria.pageNumber) : null
       return [`https://www.autotrader.co.uk/${this.type}-search?${radius ? radius.parameter : ''}${postcode ? postcode.parameter : ''}${condition ? condition.parameter : ''}${make ? make.parameter : ''}${model ? model.parameter : ''}`,
         `${variant ? variant.parameter : ''}${minPrice ? minPrice.parameter : ''}${maxPrice ? maxPrice.parameter : ''}${minYear ? minYear.parameter : ''}${maxYear ? maxYear.parameter : ''}`,
-        `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${wheelbase ? wheelbase.parameter : ''}${cab ? cab.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
+        `${minMileage ? minMileage.parameter : ''}${maxMileage ? maxMileage.parameter : ''}${wheelbase ? wheelbase.parameter : ''}${cab ? cab.parameter : ''}${minCC ? minCC.parameter : ''}${maxCC ? maxCC.parameter : ''}${body ? body.parameter : ''}${fuelType ? fuelType.parameter : ''}${fuelConsumption ? fuelConsumption.parameter : ''}`,
         `${minEngineSize ? minEngineSize.parameter : ''}${maxEngineSize ? maxEngineSize.parameter : ''}${acceleration ? acceleration.parameter : ''}${gearbox ? gearbox.parameter : ''}`,
         `${drivetrain ? drivetrain.parameter : ''}${emissions ? emissions.parameter : ''}${doors ? doors.parameter : ''}${minSeats ? minSeats.parameter : ''}${maxSeats ? maxSeats.parameter : ''}`,
         `${insurance ? insurance.parameter : ''}${annualTax ? annualTax.parameter : ''}${colour ? colour.parameter : ''}${excludeWriteOffs ? excludeWriteOffs.parameter : ''}`,
@@ -316,6 +318,12 @@ class Criteria {
       case 'cab':
         return this.validate() ? `&cab-type=${encodeURIComponent(this.value)}` : ''
         break
+      case 'minCC':
+        return this.validate() ? `&cc-from=${this.value}` : ''
+        break
+      case 'maxCC':
+        return this.validate() ? `&cc-to=${this.value}` : ''
+        break
       case 'body':
         return this.validate() ? `&body-type=${encodeURIComponent(this.value)}` : ''
         break
@@ -404,6 +412,11 @@ class Criteria {
       case 'cab':
         const VALID_CAB_TYPES = ['Crew cab', 'Day cab', 'Double cab', 'High sleeper cab', 'Low access cab', 'N', 'Short cab', 'Single cab', 'Standard cab', 'Transporter cab', '{Cab type unlisted}']
         return VALID_CAB_TYPES.includes(this.value)
+        break
+      case 'minCC':
+      case 'maxCC':
+        const VALID_CCS = ['0', '50', '125', '200', '300', '400', '500', '600', '700', '800', '900', '1000', '1100', '1200', '1300', '1400', '1600', '1800', '2000']
+        return VALID_CCS.includes(this.value)
         break
       case 'fuelType':
         const VALID_FUEL_TYPES = ['Bi Fuel', 'Diesel', ' Electric', 'Hybrid - Diesel/Electric', 'Hybrid - Diesel/Electric Plug-in', 'Hybrid - Petrol/Electric', 'Hybrid - Petrol/Electric Plug-in', 'Petrol', 'Petrol Ethanol', 'Unlisted']
