@@ -258,9 +258,10 @@ class Search {
       if (!content) return false
       const $ = cheerio.load(content)
       const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
-      return new ListingCollection($('li.search-page__result').map((i, el) => {
+      return new ListingCollection($('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
         return new Listing(el)
       }).get())
+
     } catch(e) {
       console.error(e)
       return false
