@@ -150,7 +150,7 @@ class Search {
     this.criteria = options.criteria ? options.criteria : {}
     if (options.criteria) {
       this.type = options.type ? options.type.toLowerCase() : 'car'
-      const VALID_TYPES =['car', 'van']
+      const VALID_TYPES =['car', 'van', 'bike']
       if (!VALID_TYPES.includes(this.type)) return false
     }
     this.prebuiltURL = options.prebuiltURL ? options.prebuiltURL : ''
@@ -232,7 +232,7 @@ class Search {
   }
 
   _validatePrebuiltURL(prebuiltURL) {
-    if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?') || prebuiltURL.includes('https://www.autotrader.co.uk/van-search?')) {
+    if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?') || prebuiltURL.includes('https://www.autotrader.co.uk/van-search?' || prebuiltURL.includes('https://www.autotrader.co.uk/bike-search?'))) {
       return true
     } else {
       return false
