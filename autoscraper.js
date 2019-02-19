@@ -234,7 +234,7 @@ class Search {
   }
 
   _validatePrebuiltURL(prebuiltURL) {
-    if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?') || prebuiltURL.includes('https://www.autotrader.co.uk/van-search?' || prebuiltURL.includes('https://www.autotrader.co.uk/bike-search?'))) {
+    if (prebuiltURL.includes('https://www.autotrader.co.uk/car-search?') || prebuiltURL.includes('https://www.autotrader.co.uk/van-search?') || prebuiltURL.includes('https://www.autotrader.co.uk/bike-search?')) {
       return true
     } else {
       return false
