@@ -13,6 +13,9 @@ class AutoTraderScraper {
       },
       advert: {
         from: (url) => this.getAdvert(url)
+      },
+      dealer: {
+        from: (url) => this._getDealer(url)
       }
     }
     this.search = (type) => {
@@ -156,6 +159,20 @@ class AutoTraderScraper {
     const $ = cheerio.load(content)
     const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), { condition: 'New', url: url })
     return advert
+  }
+
+  async _getDealer(url) {
+    await nightmare
+      .goto(url)
+      .wait('#content > header > section > section > section > div:nth-child(3) > div > div > div > p')
+      .wait('#content > section')
+      .wait('.dealer__stock-reviews')
+    const content = await nightmare.evaluate(function() {
+      return document.body.innerHTML
+    })
+    const $ = cheerio.load(content)
+    const dealer = new Dealer($('.dealer-profile-page').html())
+    return dealer
   }
 }
 
