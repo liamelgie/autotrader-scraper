@@ -769,6 +769,7 @@ class Listing {
     this.title = this.$('.listing-title').text().replace(/\n/g, '').trim()
     this.price = this.$('.vehicle-price').first().text()
     this.image = this.$('.listing-main-image').find('img').attr('src')
+    if (!/^http/.test(this.image)) this.image = 'https://www.autotrader.co.uk' + this.image
     /* FIX: the following cannot be used as the data provided by users is unpredictable. This must be addressed.
      * this.year = this.$('.listing-key-specs ').find('li').first().text()
      * this.body = this.$('.listing-key-specs ').find('li').first().next().text()
