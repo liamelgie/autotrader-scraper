@@ -808,4 +808,65 @@ class ListingCollection {
   }
 }
 
+class Dealer {
+  constructor(node) {
+    if (!node) return null
+    this.$ = cheerio.load(node)
+    this.name = this.$('.dealer__title').text()
+    this.logo = this.$('.dealer__logo').attr('src')
+    this.description = this.$('.dealer__profile-body').text()
+    this.telephone = this.$('.dealer-profile-telephone-number-container').find('a').map((i, el) => {
+      return this.$(el).text().replace(/\n/g, '').trim()
+    }).get()
+    this.website = this.$('.contact-card__link').attr('href')
+    this.location = {
+      address: this.$('.contact-card__cta').find('address').text(),
+      maps: this.$('.contact-card__cta').attr('href')
+    }
+    this.stock = this.$('.dealer__stock-reviews').find('.dealer__stock-strip').map((i, el) => {
+      const title = this.$(el).find('.dealer__stock-title').text()
+      const link = this.$(el).find('.dealer__stock-header').find('a').attr('href')
+      const vehicles = this.$(el).find('.grid-results__list').find('li').map((i, el) => {
+        const card = this.$(el).find('.p-card')
+        return {
+          link: card.find('a').attr('href'),
+          image: card.find('.p-card__image-mask').find('img').attr('src'),
+          price: card.find('.p-card__header-title').text(),
+          title: card.find('.p-card__section').find('p-card__sub-title').text(),
+          description: card.find('.p-card__desc').text()
+        }
+      }).get()
+      return {
+        title,
+        link,
+        vehicles
+      }
+    }).get()
+  }
+
+  get literals() {
+    return {
+      name: this.name,
+      logo: this.logo,
+      description: this.description,
+      telephone: this.telephone,
+      website: this.website,
+      location: this.location,
+      stock: this.stock
+    }
+  }
+
+  get json() {
+    return JSON.stringify({
+      name: this.name,
+      logo: this.logo,
+      description: this.description,
+      telephone: this.telephone,
+      website: this.website,
+      location: this.location,
+      stock: this.stock
+    })
+  }
+}
+
 module.exports = AutoTraderScraper
