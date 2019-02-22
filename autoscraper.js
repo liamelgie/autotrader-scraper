@@ -770,14 +770,6 @@ class Listing {
     this.price = this.$('.vehicle-price').first().text()
     this.image = this.$('.listing-main-image').find('img').attr('src')
     if (!/^http/.test(this.image)) this.image = 'https://www.autotrader.co.uk' + this.image
-    /* FIX: the following cannot be used as the data provided by users is unpredictable. This must be addressed.
-     * this.year = this.$('.listing-key-specs ').find('li').first().text()
-     * this.body = this.$('.listing-key-specs ').find('li').first().next().text()
-     * etc, etc
-     *
-     * The following is a working alternative but does not allow for named referencing of each spec.
-     *
-     */
     this.keySpecs = this.$('.listing-key-specs ').find('li').map((i, el) => {
       return this.$(el).text().replace(/\n/g, '').trim()
     }).get()
