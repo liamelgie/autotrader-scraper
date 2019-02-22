@@ -23,6 +23,12 @@ class AutoTraderScraper {
         for: (criteria) => this._searchFor(criteria, type)
       }
     }
+    this.save = {
+      advert: (url) => this._saveAdvert(url)
+    }
+    this.unsave = {
+      advert: (url) => this._unsaveAdvert(url)
+    }
   }
 
   async login(credentials) {
