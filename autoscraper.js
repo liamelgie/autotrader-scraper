@@ -6,6 +6,20 @@ const fetch = require('node-fetch')
 class AutoTraderScraper {
   constructor() {
     this.loggedIn = false
+    // Interface
+    this.get = {
+      listings: {
+        from: (prebuiltURL) => this.getListings(prebuiltURL)
+      },
+      advert: {
+        from: (url) => this.getAdvert(url)
+      }
+    }
+    this.search = (type) => {
+      return {
+        for: (criteria) => this.searchFor(criteria, type)
+      }
+    }
   }
 
   async login(credentials) {
@@ -149,7 +163,7 @@ class Search {
   constructor(options) {
     this.criteria = options.criteria ? options.criteria : {}
     if (options.criteria) {
-      this.type = options.type ? options.type.toLowerCase() : 'car'
+      this.type = options.type ? options.type.toLowerCase().replace(/s$/, '') : 'car'
       const VALID_TYPES =['car', 'van', 'bike']
       if (!VALID_TYPES.includes(this.type)) return false
     }
