@@ -2,7 +2,7 @@ const AutoTraderScraper = require('../autoscraper.js')
 
 async function init() {
   let a = new AutoTraderScraper()
-  await a.getListings('https://www.autotrader.co.uk/car-search?radius=1500&postcode=b987wy&onesearchad=Used&onesearchad=Nearly%20New&onesearchad=New')
+  await a.get.listings.from('https://www.autotrader.co.uk/bike-search?advertising-location=at_bikes&search-target=usedbikes&is-quick-search=true&radius=&make=KAWASAKI&model=&body-type=&cc-from=&cc-to=&postcode=bh317le')
   .then(listings => listings.literals)
   .then(literals => console.log(literals))
 
