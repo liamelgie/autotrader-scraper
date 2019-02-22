@@ -177,7 +177,7 @@ class AutoTraderScraper {
       return document.body.innerHTML
     })
     const $ = cheerio.load(content)
-    const dealer = new Dealer($('.dealer-profile-page').html())
+    const dealer = new Dealer($('.dealer-profile-page').html(), url)
     return dealer
   }
 }
@@ -832,9 +832,10 @@ class ListingCollection {
 }
 
 class Dealer {
-  constructor(node) {
+  constructor(node, url) {
     if (!node) return null
     this.$ = cheerio.load(node)
+    this.baseURL = url
     this.name = this.$('.dealer__title').text()
     this.logo = this.$('.dealer__logo').attr('src')
     this.description = this.$('.dealer__profile-body').text()
@@ -867,8 +868,13 @@ class Dealer {
     }).get()
   }
 
+  _getCleanURL() {
+    return this.baseURL.replace(/\?.+$/, '')
+  }
+
   get literals() {
     return {
+      url: this._getCleanURL(),
       name: this.name,
       logo: this.logo,
       description: this.description,
@@ -881,6 +887,7 @@ class Dealer {
 
   get json() {
     return JSON.stringify({
+      url: this._getCleanURL(),
       name: this.name,
       logo: this.logo,
       description: this.description,
