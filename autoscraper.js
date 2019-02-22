@@ -201,9 +201,9 @@ class Search {
       const condition = this.criteria.condition ? new Criteria('condition', this.criteria.condition) : null
       const minPrice = this.criteria.price ? this.criteria.price.min ? new Criteria('minPrice', this.criteria.price.min) : null : null
       const maxPrice = this.criteria.price ? this.criteria.price.max ? new Criteria('maxPrice', this.criteria.price.max) : null : null
-      const make = this.criteria.make ? new Criteria('make', this.criteria.make) : null
-      const model = this.criteria.model ? new Criteria('model', this.criteria.model) : null
-      const variant = this.criteria.variant ? new Criteria('variant', this.criteria.variant) : null
+      const make = this.criteria.make ? new Criteria('make', this.criteria.make.toUpperCase()) : null
+      const model = this.criteria.model ? new Criteria('model', this.criteria.model.toUpperCase()) : null
+      const variant = this.criteria.variant ? new Criteria('variant', this.criteria.variant.toUpperCase()) : null
       const minYear = this.criteria.year ? this.criteria.year.min ? new Criteria('minYear', this.criteria.year.min) : null : null
       const maxYear = this.criteria.year ? this.criteria.year.max ? new Criteria('maxYear', this.criteria.year.max) : null : null
       const minMileage = this.criteria.mileage ? this.criteria.mileage.min ? new Criteria('minMileage', this.criteria.mileage.min) : null : null
