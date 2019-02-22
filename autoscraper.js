@@ -9,10 +9,10 @@ class AutoTraderScraper {
     // Interface
     this.get = {
       listings: {
-        from: (prebuiltURL) => this.getListings(prebuiltURL)
+        from: (prebuiltURL) => this._getListings(prebuiltURL)
       },
       advert: {
-        from: (url) => this.getAdvert(url)
+        from: (url) => this._getAdvert(url)
       },
       dealer: {
         from: (url) => this._getDealer(url)
@@ -20,7 +20,7 @@ class AutoTraderScraper {
     }
     this.search = (type) => {
       return {
-        for: (criteria) => this.searchFor(criteria, type)
+        for: (criteria) => this._searchFor(criteria, type)
       }
     }
   }
@@ -63,7 +63,7 @@ class AutoTraderScraper {
     this.loggedIn = false
   }
 
-  async saveAdvert(url) {
+  async _saveAdvert(url) {
     if (!this.loggedIn) {
       console.error('Could not save advert as no account is logged in.')
       return false
@@ -80,7 +80,7 @@ class AutoTraderScraper {
     else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
-  async unsaveAdvert(url) {
+  async _unsaveAdvert(url) {
     if (!this.loggedIn) {
       console.error('Could not unsave advert as no account is logged in.')
       return false
@@ -97,19 +97,19 @@ class AutoTraderScraper {
     else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
-  async searchFor(criteria, type) {
+  async _searchFor(criteria, type) {
     const search = new Search({ criteria, type })
     const results = await search.execute()
     return results
   }
 
-  async getListings(prebuiltURL) {
+  async _getListings(prebuiltURL) {
     const search = new Search({ prebuiltURL })
     const results = await search.execute()
     return results
   }
 
-  async getAdvert(url) {
+  async _getAdvert(url) {
     const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
     return condition === 'Used' ? this._getUsedCarAdvert(url) : this._getNewCarAdvert(url)
   }
