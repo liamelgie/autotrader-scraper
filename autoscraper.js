@@ -16,6 +16,9 @@ class AutoTraderScraper {
       },
       dealer: {
         from: (url) => this._getDealer(url)
+      },
+      saved: {
+        adverts: () => this._getSavedAdverts()
       }
     }
     this.search = (type) => {
@@ -103,6 +106,23 @@ class AutoTraderScraper {
     else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
+  async _getSavedAdverts() {
+    if (!this.loggedIn) {
+      console.error('An account must be logged in to retrieve saved adverts.')
+      return false
+    }
+    const content = await nightmare
+      .goto('https://www.autotrader.co.uk/secure/saved-recent')
+      .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
+      .evaluate(function() {
+        return document.body.innerHTML
+      })
+      const $ = cheerio.load(content)
+      return new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
+        return new SavedAdvert(el)
+      }).get())
+  }
+
   async _searchFor(criteria, type) {
     const search = new Search({ criteria, type })
     const results = await search.execute()
@@ -179,6 +199,61 @@ class AutoTraderScraper {
     const $ = cheerio.load(content)
     const dealer = new Dealer($('.dealer-profile-page').html(), url)
     return dealer
+  }
+}
+
+class SavedAdvertCollection {
+  constructor(savedAdverts) {
+    this.savedAdverts = savedAdverts ? savedAdverts : []
+  }
+
+  get literals() {
+    return this.savedAdverts.map((savedAdvert) => {
+      return savedAdvert.literal
+    })
+  }
+
+  get json() {
+    return this.savedAdverts.map((savedAdvert) => {
+      return savedAdvert.json
+    })
+  }
+}
+
+class SavedAdvert {
+  constructor(node) {
+    if (!node) return null
+    this.$ = cheerio.load(node)
+    this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
+    this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
+    this.price = this.$('.saved-advert__results-price').first().text()
+    this.image = this.$('.saved-advert__image').css('background-image')
+  }
+
+  _getCleanURL() {
+    return this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+  }
+
+  _getCleanImageURL() {
+    return this.image.match(/https[^"]+/g)[0]
+  }
+
+  get literal() {
+    return {
+      url: this._getCleanURL(),
+      title: this.title,
+      price: this.price,
+      image: this._getCleanImageURL()
+    }
+  }
+
+  get json() {
+    return JSON.stringify({
+      url: this._getCleanURL(),
+      title: this.title,
+      price: this.price,
+      image: this._getCleanImageURL()
+    })
   }
 }
 
