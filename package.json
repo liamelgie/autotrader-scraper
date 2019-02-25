@@ -1,7 +1,7 @@
 {
   "name": "autotrader-scraper",
   "version": "0.9.3",
-  "description": "Scraper for the vehicle marketplace, Auto Trader (UK)",
+  "description": "Scraper for the vehicle marketplace, AutoTrader (UK)",
   "main": "autoscraper.js",
   "files": [
     "autoscraper.js"
@@ -13,7 +13,9 @@
   },
   "keywords": [
     "autotrader",
-    "scraper"
+    "scraper",
+    "automation",
+    "api"
   ],
   "author": "Liam Elgie",
   "license": "GPL-3.0",
