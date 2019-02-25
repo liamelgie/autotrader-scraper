@@ -116,7 +116,7 @@ class AutoTraderScraper {
   }
 
   async _getAdvert(url) {
-    const condition = (/https:\/\/www.autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
+    const condition = (/https:\/\/(www.)?autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
     return condition === 'Used' ? this._getUsedCarAdvert(url) : this._getNewCarAdvert(url)
   }
 
