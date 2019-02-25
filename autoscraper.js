@@ -705,7 +705,7 @@ class Advert {
   }
 
   _getCleanURL() {
-    return this.baseURL.match(/^.+advert\/[0-9]+/)[0]
+    return this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/)[0]
   }
 
   get literal() {
@@ -778,7 +778,7 @@ class Listing {
   }
 
   _getCleanURL() {
-    return this.baseURL.match(/^.+advert\/[0-9]+/g)[0]
+    return this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
   }
 
   get literal() {
