@@ -35,11 +35,11 @@ class AutoTraderScraper {
     try {
       await nightmare
         .goto('https://www.autotrader.co.uk/secure/signin')
-        .wait('input#signInSubmit')
-        .type('input#signin-email', credentials.email)
-        .type('input#signin-password', credentials.password)
-        .click('input#signInSubmit')
-        .wait('#my-profile-content')
+        .wait('input#user-email-sign-in')
+        .type('input#user-email-sign-in', credentials.email)
+        .type('input#password-sign-in', credentials.password)
+        .click('button#sign-in')
+        .wait('#content')
       this.loggedIn = true
         // TODO: Detect failed login attempt due to invalid credentials
     } catch(e) {
