@@ -1,6 +1,6 @@
 {
   "name": "autotrader-scraper",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Scraper for the vehicle marketplace, AutoTrader (UK)",
   "main": "autoscraper.js",
   "files": [
