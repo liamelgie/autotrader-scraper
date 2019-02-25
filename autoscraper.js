@@ -227,7 +227,7 @@ class SavedAdvert {
     this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
     this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
     this.price = this.$('.saved-advert__results-price').first().text()
-    this.image = this.$('.saved-advert__image').css('background-image')
+    this.image = this.$('.saved-advert__image').length > 0 ? this.$('.saved-advert__image').css('background-image') : null
   }
 
   _getCleanURL() {
@@ -243,7 +243,7 @@ class SavedAdvert {
       url: this._getCleanURL(),
       title: this.title,
       price: this.price,
-      image: this._getCleanImageURL()
+      image: this.image ? this._getCleanImageURL() : null
     }
   }
 
@@ -252,7 +252,7 @@ class SavedAdvert {
       url: this._getCleanURL(),
       title: this.title,
       price: this.price,
-      image: this._getCleanImageURL()
+      image: this.image ? this._getCleanImageURL() : null
     })
   }
 }
