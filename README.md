@@ -1,5 +1,6 @@
 # AutoTrader Scraper
 Scraper for the online vehicle marketplace, [AutoTrader (UK)](https://www.autotrader.co.uk/). Built with Node and makes _**heavy**_ use of [Nightmare.js](https://github.com/segmentio/nightmare) for browser automation.
+
 ⚠️ While run headlessly, Nightmare.js uses Electron to automate a browser window. This requires all of Electron's dependencies to be met which includes various UI focused packages. This may be an issue on various server distros.
 ## Features
 - Perform flexible searches using all site-available criteria
