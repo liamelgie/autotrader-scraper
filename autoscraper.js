@@ -1,5 +1,5 @@
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1 })
+const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1, waitTimeout: 10000 })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
@@ -36,34 +36,44 @@ class AutoTraderScraper {
 
   async login(credentials) {
     try {
+      if (!credentials) throw 'MissingAccountCredentials'
       await nightmare
         .goto('https://www.autotrader.co.uk/secure/signin')
         .wait('input#user-email-sign-in')
         .type('input#user-email-sign-in', credentials.email)
         .type('input#password-sign-in', credentials.password)
         .click('button#sign-in')
-        .wait('#content')
-      this.loggedIn = true
+        .wait(1500)
+        .evaluate(() => {
+          if (document.querySelector('input#password-sign-in')) {
+            if (document.querySelector('input#password-sign-in').classList.contains('has-error')) return false
+          } else {
+            return true
+          }
+        })
+        .then((evalResult) => {
+          if (!evalResult) {
+            throw 'InvalidAccountCredentials'
+          } else {
+            nightmare.wait(() => {
+              return window.location.href !== 'https://www.autotrader.co.uk/secure/signin'
+            })
+            this.loggedIn = true
+          }
+        })
         // TODO: Detect failed login attempt due to invalid credentials
     } catch(e) {
-      console.error('Could not login due to the following:')
-      console.error(e)
-      console.error('Exiting...')
-      nightmare.end()
-      return false
+      throw e
     }
   }
 
   async logout() {
     try {
-      if (await nightmare.exists('#ursSignoutForm > button')) await nightmare.click('#ursSignoutForm > button')
-      else throw('Button is not present on the page.')
-      await nightmare.wait('.header__sign-in')
-      this.loggedIn = false
+      await nightmare
+        .goto('https://www.autotrader.co.uk/user/signout')
+        .wait(1000)
     } catch(e) {
-      console.error('Could not logout due to the following:')
-      console.error(e)
-      return false
+      throw e
     }
   }
 
@@ -73,169 +83,234 @@ class AutoTraderScraper {
   }
 
   async _saveAdvert(url) {
-    if (!this.loggedIn) {
-      console.error('Could not save advert as no account is logged in.')
-      return false
+    try {
+      if (!url) throw 'MissingAdvertURL'
+      if (!this.loggedIn) throw 'NotLoggedIn'
+      const saved = await nightmare
+        .goto(url)
+        .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
+        .evaluate(() => {
+          if (document.querySelector('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium > span:nth-child(2)').innerHTML === 'Saved') {
+            return true
+          }
+        })
+      if (saved) return true
+      else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
+    } catch(e) {
+      throw e
     }
-    const saved = await nightmare
-      .goto(url)
-      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
-      .evaluate(() => {
-        if (document.querySelector('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium > span:nth-child(2)').innerHTML === 'Saved') {
-          return true
-        }
-      })
-    if (saved) return true
-    else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
   async _unsaveAdvert(url) {
-    if (!this.loggedIn) {
-      console.error('Could not unsave advert as no account is logged in.')
-      return false
+    try {
+      if (!url) throw 'MissingAdvertURL'
+      if (!this.loggedIn) throw 'NotLoggedIn'
+      const unsaved = await nightmare
+        .goto(url)
+        .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
+        .evaluate(() => {
+          if (document.querySelector('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium > span:nth-child(2)').innerHTML === 'Save &amp; compare') {
+            return true
+          }
+        })
+      if (unsaved) return true
+      else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
+    } catch(e) {
+      throw e
     }
-    const unsaved = await nightmare
-      .goto(url)
-      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
-      .evaluate(() => {
-        if (document.querySelector('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium > span:nth-child(2)').innerHTML === 'Save &amp; compare') {
-          return true
-        }
-      })
-    if (unsaved) return true
-    else await nightmare.click('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium').wait(1000)
   }
 
   async _getSavedAdverts() {
-    if (!this.loggedIn) {
-      console.error('An account must be logged in to retrieve saved adverts.')
-      return false
+    try {
+      if (!this.loggedIn) throw 'NotLoggedIn'
+      const content = await nightmare
+        .goto('https://www.autotrader.co.uk/secure/saved-recent')
+        .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
+        .evaluate(function() {
+          return document.body.innerHTML
+        })
+        const $ = cheerio.load(content)
+        return new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
+          return new SavedAdvert(el)
+        }).get())
+    } catch(e) {
+      throw e
     }
-    const content = await nightmare
-      .goto('https://www.autotrader.co.uk/secure/saved-recent')
-      .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
-      .evaluate(function() {
-        return document.body.innerHTML
-      })
-      const $ = cheerio.load(content)
-      return new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
-        return new SavedAdvert(el)
-      }).get())
   }
 
   async _searchFor(criteria, type) {
-    const search = new Search({ criteria, type })
-    const results = await search.execute()
-    return results
+    try {
+      if (!criteria) throw 'MissingSearchCriteria'
+      if (!criteria) throw 'MissingSearchType'
+      const search = new Search({ criteria, type })
+      const results = await search.execute()
+      return results
+    } catch(e) {
+      throw e
+    }
   }
 
   async _getListings(prebuiltURL) {
-    const search = new Search({ prebuiltURL })
-    const results = await search.execute()
-    return results
+    try {
+      if (!prebuiltURL) throw 'MissingPrebuiltURL'
+      const search = new Search({ prebuiltURL })
+      const results = await search.execute()
+      return results
+    } catch(e) {
+      throw e
+    }
   }
 
   async _getAdvert(url) {
-    const condition = (/https:\/\/(www.)?autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
-    return condition === 'Used' ? this._getUsedCarAdvert(url) : this._getNewCarAdvert(url)
+    try {
+      if (!url) throw 'MissingAdvertURL'
+      const condition = (/https:\/\/(www.)?autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
+      return condition === 'Used' ? this._getUsedCarAdvert(url) : this._getNewCarAdvert(url)
+    } catch(e) {
+      throw e
+    }
   }
 
   async _getUsedCarAdvert(url) {
     // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
-    await nightmare
-      .goto(url)
-      .wait('div.fpa__wrapper')
-    // Seller Information
-    if (await nightmare.exists('#about-seller') && await nightmare.exists('#about-seller > p > button')) await nightmare.click('#about-seller > p > button')
-    // Review Information
-    if (await nightmare.exists('div.review-links')) {
-      await nightmare.wait('div.review-links').then(async () => {
-        const buttonID = '#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button'
-        if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
-      })
-    }
-    // Tech Specs/Comes With
-    if (await nightmare.exists('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container')) {
+    try {
+      if (!url) throw 'MissingAdvertURL'
       await nightmare
-      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > div > div > div > ul')
-      .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > section')
+        .goto(url)
+        .wait('div.fpa__wrapper')
+      // Seller Information
+      if (await nightmare.exists('#about-seller') && await nightmare.exists('#about-seller > p > button')) await nightmare.click('#about-seller > p > button')
+      // Review Information
+      if (await nightmare.exists('div.review-links')) {
+        await nightmare.wait('div.review-links').then(async () => {
+          const buttonID = '#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa__overview > p > button'
+          if (await nightmare.exists(buttonID)) await nightmare.click(buttonID)
+        })
+      }
+      // Tech Specs/Comes With
+      if (await nightmare.exists('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container')) {
+        await nightmare
+        .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > div > div > div > ul')
+        .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.fpa-details__spec-container > section')
+      }
+      const content = await nightmare.evaluate(function() {
+        return document.body.innerHTML
+      })
+      const $ = cheerio.load(content)
+      const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), { condition: 'Used', url: url })
+      return advert
+    } catch(e) {
+      throw e
     }
-    const content = await nightmare.evaluate(function() {
-      return document.body.innerHTML
-    })
-    const $ = cheerio.load(content)
-    const advert = new Advert($('article.fpa').find('div.fpa__wrapper').html(), { condition: 'Used', url: url })
-    return advert
   }
 
   async _getNewCarAdvert(url) {
-    await nightmare
-      .goto(url)
-      .wait('.non-fpa-stock-page')
-      .wait('.dealer-details--full')
-    // AutoTrader Review
-    if (await nightmare.exists('.review-holder')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > section > div:nth-child(1) > p')
-    // Standard Features
-    if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
-    // Tech Specs
-    if (await nightmare.exists('#app > main > div.configurator-light > div:nth-child(1) > section > div.tech-specs')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.tech-specs > span')
-    const content = await nightmare.evaluate(function() {
-      return document.body.innerHTML
-    })
-    const $ = cheerio.load(content)
-    const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), { condition: 'New', url: url })
-    return advert
+    try {
+      if (!url) throw 'MissingAdvertURL'
+      await nightmare
+        .goto(url)
+        .wait('.non-fpa-stock-page')
+        .wait('.dealer-details--full')
+      // AutoTrader Review
+      if (await nightmare.exists('.review-holder')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > section > div:nth-child(1) > p')
+      // Standard Features
+      if (await nightmare.exists('.detailstandard')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.detailstandard > div > ul')
+      // Tech Specs
+      if (await nightmare.exists('#app > main > div.configurator-light > div:nth-child(1) > section > div.tech-specs')) await nightmare.wait('#app > main > div.configurator-light > div:nth-child(1) > section > div.tech-specs > span')
+      const content = await nightmare.evaluate(function() {
+        return document.body.innerHTML
+      })
+      const $ = cheerio.load(content)
+      const advert = new Advert($('div.non-fpa-stock-page').find('section.main-page').html(), { condition: 'New', url: url })
+      return advert
+    } catch(e) {
+      throw e
+    }
   }
 
   async _getDealer(url) {
-    await nightmare
-      .goto(url)
-      .wait('#content > header > section > section > section > div:nth-child(3) > div > div > div > p')
-      .wait('#content > section')
-      .wait('.dealer__stock-reviews')
-    const content = await nightmare.evaluate(function() {
-      return document.body.innerHTML
-    })
-    const $ = cheerio.load(content)
-    const dealer = new Dealer($('.dealer-profile-page').html(), url)
-    return dealer
+    try {
+      if (!url) throw 'MissingDealerURL'
+      await nightmare
+        .goto(url)
+        .wait('#content > header > section > section > section > div:nth-child(3) > div > div > div > p')
+        .wait('#content > section')
+        .wait('.dealer__stock-reviews')
+      const content = await nightmare.evaluate(function() {
+        return document.body.innerHTML
+      })
+      const $ = cheerio.load(content)
+      const dealer = new Dealer($('.dealer-profile-page').html(), url)
+      return dealer
+    } catch(e) {
+      throw e
+    }
   }
 }
 
 class SavedAdvertCollection {
   constructor(savedAdverts) {
-    this.savedAdverts = savedAdverts ? savedAdverts : []
+    try {
+      if (!savedAdverts) throw 'MissingSavedAdverts'
+      this.savedAdverts = savedAdverts ? savedAdverts : []
+    } catch(e) {
+      throw e
+    }
   }
 
   get literals() {
-    return this.savedAdverts.map((savedAdvert) => {
-      return savedAdvert.literal
-    })
+    try {
+      return this.savedAdverts.map((savedAdvert) => {
+        return savedAdvert.literal
+      })
+    } catch(e) {
+      throw e
+    }
   }
 
   get json() {
-    return this.savedAdverts.map((savedAdvert) => {
-      return savedAdvert.json
-    })
+    try {
+      return this.savedAdverts.map((savedAdvert) => {
+        return savedAdvert.json
+      })
+    } catch(e) {
+
+    }
   }
 }
 
 class SavedAdvert {
   constructor(node) {
-    if (!node) return null
-    this.$ = cheerio.load(node)
-    this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
-    this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
-    this.price = this.$('.saved-advert__results-price').first().text()
-    this.image = this.$('.saved-advert__image').length > 0 ? this.$('.saved-advert__image').css('background-image') : null
+    try {
+      if (!node) throw 'MissingAdvertNode'
+      this.$ = cheerio.load(node)
+      this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
+      this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
+      this.price = this.$('.saved-advert__results-price').first().text()
+      this.image = this.$('.saved-advert__image').length > 0 ? this.$('.saved-advert__image').css('background-image') : null
+    } catch(e) {
+      throw e
+    }
   }
 
   _getCleanURL() {
-    return this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+    try {
+      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      else return cleanURL
+    } catch(e) {
+      throw e
+    }
   }
 
   _getCleanImageURL() {
-    return this.image.match(/https[^"]+/g)[0]
+    try {
+      const cleanImageURL = this.image.match(/https[^"]+/g)[0]
+      if (!cleanImageURL) throw 'InvalidAdvertImageURLToClean'
+      return cleanImageURL
+    } catch(e) {
+      throw e
+    }
   }
 
   get literal() {
@@ -259,18 +334,23 @@ class SavedAdvert {
 
 class Search {
   constructor(options) {
-    this.criteria = options.criteria ? options.criteria : {}
-    if (options.criteria) {
-      this.type = options.type ? options.type.toLowerCase().replace(/s$/, '') : 'car'
-      const VALID_TYPES =['car', 'van', 'bike']
-      if (!VALID_TYPES.includes(this.type)) return false
+    try {
+      if (!options) throw 'MissingSearchOptions'
+      this.criteria = options.criteria ? options.criteria : {}
+      if (options.criteria) {
+        this.type = options.type ? options.type.toLowerCase().replace(/s$/, '') : 'car'
+        const VALID_TYPES =['car', 'van', 'bike']
+        if (!VALID_TYPES.includes(this.type)) throw 'InvalidSearchType'
+      }
+      if (options.prebuiltURL) this.prebuiltURL = options.prebuiltURL
+    } catch(e) {
+      throw e
     }
-    this.prebuiltURL = options.prebuiltURL ? options.prebuiltURL : ''
   }
 
   _buildSearchURL() {
     try {
-      if (!this.criteria.location.postcode) throw('Cannot build valid search URL due to missing postcode')
+      if (!this.criteria.location.postcode) throw('MissingLocationPostcode')
       const radius = this.criteria.location.radius ? new Criteria('radius', this.criteria.location.radius) : null
       const postcode = this.criteria.location.postcode ? new Criteria('postcode', this.criteria.location.postcode) : null
       const condition = this.criteria.condition ? new Criteria('condition', this.criteria.condition) : null
@@ -314,17 +394,21 @@ class Search {
         `${insurance ? insurance.parameter : ''}${annualTax ? annualTax.parameter : ''}${colour ? colour.parameter : ''}${excludeWriteOffs ? excludeWriteOffs.parameter : ''}`,
         `${onlyWriteOffs ? onlyWriteOffs.parameter : ''}${customKeywords ? customKeywords.parameter : ''}${page ? page.parameter : ''}`].join('')
     } catch(e) {
-      console.error(e)
-      return false
+      throw e
     }
   }
 
   set criteria(newCriteria) {
-    if (this._criteria) {
-      const oldCriteria = this._criteria
-      this._criteria = Object.assign(oldCriteria, newCriteria)
-    } else {
-      this._criteria = newCriteria
+    try {
+      if (!newCriteria) throw 'MissingNewCriteraToSet'
+      if (this._criteria) {
+        const oldCriteria = this._criteria
+        this._criteria = Object.assign(oldCriteria, newCriteria)
+      } else {
+        this._criteria = newCriteria
+      }
+    } catch(e) {
+      throw e
     }
   }
 
@@ -337,8 +421,14 @@ class Search {
   }
 
   set prebuiltURL(url) {
-    if (this._validatePrebuiltURL(url)) this._prebuiltURL = url
-    else this._prebuiltURL = false
+    try {
+      if (!url) throw 'MissingPrebuiltURLToSet'
+      if (this._validatePrebuiltURL(url)) this._prebuiltURL = url
+      else this._prebuiltURL = false
+    } catch(e) {
+      throw e
+    }
+
   }
 
   get prebuiltURL() {
@@ -355,36 +445,37 @@ class Search {
 
   async execute() {
     try {
-      let searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
-      if (!searchURL) throw('Cannot execute search due to invalid search URL')
+      const searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
+      if (!searchURL) throw('InvalidSearchURL')
       const content = await fetch(searchURL)
         .then(res => res.text())
         .then((body) => {
           return body
         })
-      if (!content) return false
+      if (!content) throw('FailedToRetrieveSearchResults')
       const $ = cheerio.load(content)
       const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
       return new ListingCollection($('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
         return new Listing(el)
       }).get())
-
     } catch(e) {
-      console.error(e)
-      return false
+      throw e
     }
   }
 }
 
 class Criteria {
   constructor(type, value) {
-      if (!type || !value) {
-        console.error('Missing Parameter: Criteria object requires both type and value')
-        return null
-      }
+    try {
+      if (!type) throw 'MissingCriteriaType'
+      if (!value) throw 'MissingCriteriaValue'
       this.type = type
       this.value = value
+    } catch(e) {
+      throw e
+    }
   }
+
   get parameter() {
     switch (this.type) {
       case 'radius':
@@ -586,80 +677,103 @@ class Criteria {
 
 class Advert {
   constructor(node, options) {
-    if (!node) return null
-    if (!options || !options.condition || !options.url) return null
-    this.$ = cheerio.load(node)
-    this.condition = options.condition
-    this.baseURL = options.url
-    if (this.condition === 'Used') this._getUsedCarData()
-    else this._getNewCarData()
+    try {
+      if (!node) throw 'MissingAdvertNode'
+      if (!options || !options.condition || !options.url) {
+        if (!options.condition) throw 'MissingAdvertCondition'
+        if (!options.url) throw 'MissingAdvertURL'
+      }
+      this.$ = cheerio.load(node)
+      this.condition = options.condition
+      this.baseURL = options.url
+      if (this.condition === 'Used') this._getUsedCarData()
+      else this._getNewCarData()
+    } catch(e) {
+      throw e
+    }
   }
 
   _getUsedCarData() {
-    this.title = this.$('.advert-heading__title').text()
-    this.price = this.$('.advert-price__cash-price').text()
-    this.description = this.$('.fpa__description').text()
-    this.images = this._getImages()
-    this.rating = {
-      owner: this.$('section.stars__owner-rating--small').next('span.review-links__rating').text(),
-      autotrader: this.$('section.stars__expert-rating--small').next('span.review-links__rating').text()
+    try {
+      this.title = this.$('.advert-heading__title').text()
+      this.price = this.$('.advert-price__cash-price').text()
+      this.description = this.$('.fpa__description').text()
+      this.images = this._getImages()
+      this.rating = {
+        owner: this.$('section.stars__owner-rating--small').next('span.review-links__rating').text(),
+        autotrader: this.$('section.stars__expert-rating--small').next('span.review-links__rating').text()
+      }
+      this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.comesWith = this.$('ul.combined-features__features-list').find('li').map((i, el) => {
+        return this.$(el).text()
+      }).get()
+      this.techSpecs = this._getTechSpecs()
+      this.seller = this._getSeller()
+    } catch(e) {
+      throw e
     }
-    this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
-      return this.$(el).text().replace(/\n/g, '').trim()
-    }).get()
-    this.comesWith = this.$('ul.combined-features__features-list').find('li').map((i, el) => {
-      return this.$(el).text()
-    }).get()
-    this.techSpecs = this._getTechSpecs()
-    this.seller = this._getSeller()
   }
 
   _getNewCarData() {
-    this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
-    this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
-    this.images = this._getImages()
-    this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
-      return this.$(el).text().replace(/\n/g, '').trim()
-    }).get()
-    this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
-      return this.$(el).text().replace(/\n/g, '').trim()
-    }).get()
-    this.techSpecs = this._getTechSpecs()
-    this.review = this._getReview()
-    this.seller = this._getSeller()
+    try {
+      this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
+      this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
+      this.images = this._getImages()
+      this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.standardFeatures = this.$('ul.detail--list').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.techSpecs = this._getTechSpecs()
+      this.review = this._getReview()
+      this.seller = this._getSeller()
+    } catch(e) {
+      throw e
+    }
   }
 
   // TODO: Currently only grabs the first two images as they are pulled from the server once the user clicks through the gallery. Find a way around this.
   _getImages() {
-    return this.condition === 'Used' ?
-    this.$('section.gallery').find('ul.gallery__items-list').find('li').map((i, el) => {
-      return this.$(el).find('img').attr('src')
-    }).get() :
-    this.$('.gallery__items-list').find('li').map((i, el) => {
-      return this.$(el).find('img').attr('src')
-    }).get()
+    try {
+      return this.condition === 'Used' ?
+        this.$('section.gallery').find('ul.gallery__items-list').find('li').map((i, el) => {
+          return this.$(el).find('img').attr('src')
+        }).get() :
+        this.$('.gallery__items-list').find('li').map((i, el) => {
+          return this.$(el).find('img').attr('src')
+        }).get()
+    } catch(e) {
+      throw e
+    }
   }
 
   _getTechSpecs() {
-    return this.condition === 'Used' ?
-    this._convertTechSpecArraysToObjects(this.$('section.tech-specs').find('div.expander').map((i, el) => {
-      const key = this._parseTechSpecKey(this.$(el).find('button.expander__heading').find('span').text())
-      const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
-      const points = data.map((i, el) => {
-        if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
-        else return this.$(el).text()
-      }).get()
-      return { [key]: points }
-    }).get()) :
-    this._convertTechSpecArraysToObjects(this.$('div.tech-specs').find('div.expander').map((i, el) => {
-      const key = this._parseTechSpecKey(this.$(el).find('h3.expander__header').text())
-      const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
-      const points = data.map((i, el) => {
-        if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
-        else return this.$(el).text()
-      }).get()
-      return { [key]: points }
-    }).get())
+    try {
+      return this.condition === 'Used' ?
+        this._convertTechSpecArraysToObjects(this.$('section.tech-specs').find('div.expander').map((i, el) => {
+          const key = this._parseTechSpecKey(this.$(el).find('button.expander__heading').find('span').text())
+          const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
+          const points = data.map((i, el) => {
+            if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
+            else return this.$(el).text()
+          }).get()
+          return { [key]: points }
+        }).get()) :
+        this._convertTechSpecArraysToObjects(this.$('div.tech-specs').find('div.expander').map((i, el) => {
+          const key = this._parseTechSpecKey(this.$(el).find('h3.expander__header').text())
+          const data = this.$(el).find('div.expander__content').find('ul.info-list').find('li')
+          const points = data.map((i, el) => {
+            if (this.$(el).children().length > 1) return { [this._parseTechSpecKey(this.$(el).find('span.half-one').text())]: this.$(el).find('span.half-two').text() }
+            else return this.$(el).text()
+          }).get()
+          return { [key]: points }
+        }).get())
+    } catch(e) {
+      throw e
+    }
   }
 
   _convertTechSpecArraysToObjects(array) {
@@ -753,34 +867,48 @@ class Advert {
   }
 
   _getReview() {
-    return this.condition === 'Used' ? null : {
-      score: this.$('.review-holder').find('.starRating__number').first().text(),
-      blurb: this.$('.review-holder').find('.atc-type-picanto').first().text(),
-      pros: this.$('.review-holder').find('.pro-list').find('li').map((i, el) => {
-        return this.$(el).text().replace(/\n/g, '').trim()
-      }).get(),
-      cons: this.$('.review-holder').find('.con-list').find('li').map((i, el) => {
-        return this.$(el).text().replace(/\n/g, '').trim()
-      }).get()
+    try {
+      return this.condition === 'Used' ? null : {
+        score: this.$('.review-holder').find('.starRating__number').first().text(),
+        blurb: this.$('.review-holder').find('.atc-type-picanto').first().text(),
+        pros: this.$('.review-holder').find('.pro-list').find('li').map((i, el) => {
+          return this.$(el).text().replace(/\n/g, '').trim()
+        }).get(),
+        cons: this.$('.review-holder').find('.con-list').find('li').map((i, el) => {
+          return this.$(el).text().replace(/\n/g, '').trim()
+        }).get()
+      }
+    } catch(e) {
+      throw e
     }
   }
 
   _getSeller() {
-    return this.condition === 'Used' ? {
-      name: this.$('.seller-name__link').first().text(),
-      location: this.$('.seller-locations__town').text(),
-      number: this.$('.seller-numbers').text(),
-      rating: this.$('.review-links__rating').first().text(),
-      description: this.$('#about-seller > p').text()
-    } : {
-      name: this.$('.dealer-details--full').find('#dealer-name').text(),
-      rating: this.$('.dealer-details--full').find('.dealer__overall-rating-score').text(),
-      description: this.$('.dealer-details--full').find('.atc-type-picanto').text(),
+    try {
+      return this.condition === 'Used' ? {
+        name: this.$('.seller-name__link').first().text(),
+        location: this.$('.seller-locations__town').text(),
+        number: this.$('.seller-numbers').text(),
+        rating: this.$('.review-links__rating').first().text(),
+        description: this.$('#about-seller > p').text()
+      } : {
+        name: this.$('.dealer-details--full').find('#dealer-name').text(),
+        rating: this.$('.dealer-details--full').find('.dealer__overall-rating-score').text(),
+        description: this.$('.dealer-details--full').find('.atc-type-picanto').text(),
+      }
+    } catch(e) {
+      throw e
     }
   }
 
   _getCleanURL() {
-    return this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/)[0]
+    try {
+      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/)[0]
+      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      else return cleanURL
+    } catch(e) {
+      throw e
+    }
   }
 
   get literal() {
@@ -838,22 +966,33 @@ class Advert {
 
 class Listing {
   constructor(node) {
-    if (!node) return null
-    this.$ = cheerio.load(node)
-    this.baseURL = 'https://autotrader.co.uk' + this.$('.listing-title').find('a').attr('href')
-    this.title = this.$('.listing-title').text().replace(/\n/g, '').trim()
-    this.price = this.$('.vehicle-price').first().text()
-    this.image = this.$('.listing-main-image').find('img').attr('src')
-    if (!/^http/.test(this.image)) this.image = 'https://www.autotrader.co.uk' + this.image
-    this.keySpecs = this.$('.listing-key-specs ').find('li').map((i, el) => {
-      return this.$(el).text().replace(/\n/g, '').trim()
-    }).get()
-    this.description = this.$('.listing-description').text()
-    this.location = this.$('.seller-location').text().replace(/\n/g, '').trim()
+    try {
+      if (!node) throw 'MissingListingNode'
+      this.$ = cheerio.load(node)
+      this.baseURL = 'https://autotrader.co.uk' + this.$('.listing-title').find('a').attr('href')
+      this.title = this.$('.listing-title').text().replace(/\n/g, '').trim()
+      this.price = this.$('.vehicle-price').first().text()
+      this.image = this.$('.listing-main-image').find('img').attr('src')
+      if (!/^http/.test(this.image)) this.image = 'https://www.autotrader.co.uk' + this.image
+      this.keySpecs = this.$('.listing-key-specs ').find('li').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.description = this.$('.listing-description').text()
+      this.location = this.$('.seller-location').text().replace(/\n/g, '').trim()
+    } catch(e) {
+      throw e
+    }
+
   }
 
   _getCleanURL() {
-    return this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+    try {
+      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      else return cleanURL
+    } catch(e) {
+      throw e
+    }
   }
 
   get literal() {
@@ -883,7 +1022,12 @@ class Listing {
 
 class ListingCollection {
   constructor(listings) {
-    this.listings = listings ? listings : []
+    try {
+      if (!listings) throw 'MissingListings'
+      this.listings = listings
+    } catch(e) {
+      throw e
+    }
   }
 
   get literals() {
@@ -901,43 +1045,54 @@ class ListingCollection {
 
 class Dealer {
   constructor(node, url) {
-    if (!node) return null
-    this.$ = cheerio.load(node)
-    this.baseURL = url
-    this.name = this.$('.dealer__title').text()
-    this.logo = this.$('.dealer__logo').attr('src')
-    this.description = this.$('.dealer__profile-body').text()
-    this.telephone = this.$('.dealer-profile-telephone-number-container').find('a').map((i, el) => {
-      return this.$(el).text().replace(/\n/g, '').trim()
-    }).get()
-    this.website = this.$('.contact-card__link').attr('href')
-    this.location = {
-      address: this.$('.contact-card__cta').find('address').text(),
-      maps: this.$('.contact-card__cta').attr('href')
-    }
-    this.stock = this.$('.dealer__stock-reviews').find('.dealer__stock-strip').map((i, el) => {
-      const title = this.$(el).find('.dealer__stock-title').text()
-      const link = this.$(el).find('.dealer__stock-header').find('a').attr('href')
-      const vehicles = this.$(el).find('.grid-results__list').find('li').map((i, el) => {
-        const card = this.$(el).find('.p-card')
+    try {
+      if (!node) throw 'MissingDealerNode'
+      if (!url) throw 'MissingDealerURL'
+      this.$ = cheerio.load(node)
+      this.baseURL = url
+      this.name = this.$('.dealer__title').text()
+      this.logo = this.$('.dealer__logo').attr('src')
+      this.description = this.$('.dealer__profile-body').text()
+      this.telephone = this.$('.dealer-profile-telephone-number-container').find('a').map((i, el) => {
+        return this.$(el).text().replace(/\n/g, '').trim()
+      }).get()
+      this.website = this.$('.contact-card__link').attr('href')
+      this.location = {
+        address: this.$('.contact-card__cta').find('address').text(),
+        maps: this.$('.contact-card__cta').attr('href')
+      }
+      this.stock = this.$('.dealer__stock-reviews').find('.dealer__stock-strip').map((i, el) => {
+        const title = this.$(el).find('.dealer__stock-title').text()
+        const link = this.$(el).find('.dealer__stock-header').find('a').attr('href')
+        const vehicles = this.$(el).find('.grid-results__list').find('li').map((i, el) => {
+          const card = this.$(el).find('.p-card')
+          return {
+            link: card.find('a').attr('href'),
+            image: card.find('.p-card__image-mask').find('img').attr('src'),
+            price: card.find('.p-card__header-title').text(),
+            title: card.find('.p-card__section').find('p-card__sub-title').text(),
+            description: card.find('.p-card__desc').text()
+          }
+        }).get()
         return {
-          link: card.find('a').attr('href'),
-          image: card.find('.p-card__image-mask').find('img').attr('src'),
-          price: card.find('.p-card__header-title').text(),
-          title: card.find('.p-card__section').find('p-card__sub-title').text(),
-          description: card.find('.p-card__desc').text()
+          title,
+          link,
+          vehicles
         }
       }).get()
-      return {
-        title,
-        link,
-        vehicles
-      }
-    }).get()
+    } catch(e) {
+      throw e
+    }
   }
 
   _getCleanURL() {
-    return this.baseURL.replace(/\?.+$/, '')
+    try {
+      const cleanURL = this.baseURL.replace(/\?.+$/, '')
+      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      else return cleanURL
+    } catch(e) {
+      throw e
+    }
   }
 
   get literals() {
