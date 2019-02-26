@@ -1,5 +1,5 @@
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1, waitTimeout: 10000 })
+const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1, waitTimeout: 10000, show: true })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
@@ -18,7 +18,7 @@ class AutoTraderScraper {
         from: (url) => this._getDealer(url)
       },
       saved: {
-        adverts: () => this._getSavedAdverts()
+        adverts: (options) => this._getSavedAdverts(options)
       }
     }
     this.search = (type) => {
@@ -120,11 +120,12 @@ class AutoTraderScraper {
     }
   }
 
-  async _getSavedAdverts() {
+  async _getSavedAdverts(options) {
     try {
       if (!this.loggedIn) throw 'NotLoggedIn'
+      const pageParam = options.page ? `?page=${options.page}` : ''
       const content = await nightmare
-        .goto('https://www.autotrader.co.uk/secure/saved-recent')
+        .goto(`https://www.autotrader.co.uk/secure/saved-recent${pageParam}`)
         .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
         .evaluate(function() {
           return document.body.innerHTML
