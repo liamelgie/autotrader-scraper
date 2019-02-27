@@ -19,6 +19,11 @@ class AutoTraderScraper {
       },
       saved: {
         adverts: (options) => this._getSavedAdverts(options)
+      },
+      all: {
+        saved: {
+          adverts: () => this._getAllSavedAdverts()
+        }
       }
     }
     this.search = (type) => {
@@ -120,6 +125,7 @@ class AutoTraderScraper {
     }
   }
 
+  // Refactor into something cleaner
   async _getSavedAdverts(options) {
     try {
       if (!this.loggedIn) throw 'NotLoggedIn'
@@ -134,6 +140,51 @@ class AutoTraderScraper {
         return new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
           return new SavedAdvert(el)
         }).get())
+    } catch(e) {
+      throw e
+    }
+  }
+
+  // Refactor into something cleaner
+  async _getSavedAdvertsData(pageNumber) {
+    try {
+      if (!this.loggedIn) throw 'NotLoggedIn'
+      const pageParam = pageNumber ? `?page=${pageNumber}` : ''
+      const content = await nightmare
+        .goto(`https://www.autotrader.co.uk/secure/saved-recent${pageParam}`)
+        .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
+        .evaluate(function() {
+          return document.body.innerHTML
+        })
+        const $ = cheerio.load(content)
+        return $('ul.saved-advert__results-list').find('li').find('div.saved-advert')
+    } catch(e) {
+      throw e
+    }
+  }
+
+  // Refactor into something cleaner
+  async _getAllSavedAdverts() {
+    try {
+      if (!this.loggedIn) throw 'NotLoggedIn'
+      const content = await nightmare
+        .goto(`https://www.autotrader.co.uk/secure/saved-recent`)
+        .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
+        .evaluate(function() {
+          return document.body.innerHTML
+        })
+      const $ = cheerio.load(content)
+      const pageCount = $('.paginator__link--last').attr('href')[$('.paginator__link--last').attr('href').length -1]
+      const savedAdverts = new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
+        return new SavedAdvert(el)
+      }).get())
+      for (let pageNumber = 2; pageNumber < pageCount; pageNumber++) {
+        const savedAdvertsData = await this._getSavedAdvertsData(pageNumber)
+        savedAdverts.add(savedAdvertsData.map((i, el) => {
+          return new SavedAdvert(el)
+        }).get())
+      }
+      return savedAdverts
     } catch(e) {
       throw e
     }
@@ -259,6 +310,21 @@ class SavedAdvertCollection {
     }
   }
 
+  add(savedAdverts) {
+    try {
+      if (!savedAdverts) throw 'MissingSavedAdvert'
+      if (Array.isArray(savedAdverts)) {
+        for (let savedAdvert of savedAdverts) {
+          this.savedAdverts.push(savedAdvert)
+        }
+      } else {
+        this.savedAdverts.push(savedAdvert)
+      }
+    } catch(e) {
+      throw e
+    }
+  }
+
   get literals() {
     try {
       return this.savedAdverts.map((savedAdvert) => {
@@ -285,10 +351,19 @@ class SavedAdvert {
     try {
       if (!node) throw 'MissingAdvertNode'
       this.$ = cheerio.load(node)
-      this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
-      this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
-      this.price = this.$('.saved-advert__results-price').first().text()
-      this.image = this.$('.saved-advert__image').length > 0 ? this.$('.saved-advert__image').css('background-image') : null
+      if (!this.$('div.saved-advert').attr('class').includes('saved-advert--expired')) {
+        this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
+        this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
+        this.price = this.$('.saved-advert__results-price').first().text()
+        this.image = this.$('.saved-advert__image').length > 0 ? this.$('.saved-advert__image').css('background-image') : null
+        this.expired = false
+      } else {
+        this.baseURL = null
+        this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
+        this.price = this.$('.saved-advert__results-price').first().text()
+        this.image = null
+        this.expired = true
+      }
     } catch(e) {
       throw e
     }
@@ -296,6 +371,7 @@ class SavedAdvert {
 
   _getCleanURL() {
     try {
+      if (this.baseURL === null) return null
       const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
       if (!cleanURL) throw 'InvalidAdvertURLToClean'
       else return cleanURL
@@ -306,6 +382,7 @@ class SavedAdvert {
 
   _getCleanImageURL() {
     try {
+      if (this.image === null) return null
       const cleanImageURL = this.image.match(/https[^"]+/g)[0]
       if (!cleanImageURL) throw 'InvalidAdvertImageURLToClean'
       return cleanImageURL
@@ -319,7 +396,8 @@ class SavedAdvert {
       url: this._getCleanURL(),
       title: this.title,
       price: this.price,
-      image: this.image ? this._getCleanImageURL() : null
+      image: this.image ? this._getCleanImageURL() : null,
+      expired: this.expired
     }
   }
 
@@ -328,7 +406,8 @@ class SavedAdvert {
       url: this._getCleanURL(),
       title: this.title,
       price: this.price,
-      image: this.image ? this._getCleanImageURL() : null
+      image: this.image ? this._getCleanImageURL() : null,
+      expired: this.expired
     })
   }
 }
