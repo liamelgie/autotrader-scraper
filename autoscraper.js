@@ -28,7 +28,7 @@ class AutoTraderScraper {
     }
     this.search = (type) => {
       return {
-        for: (criteria) => this._searchFor(criteria, type)
+        for: (options) => this._searchFor(type, options)
       }
     }
     this.save = {
@@ -178,7 +178,7 @@ class AutoTraderScraper {
       const savedAdverts = new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
         return new SavedAdvert(el)
       }).get())
-      for (let pageNumber = 2; pageNumber < pageCount; pageNumber++) {
+      for (let pageNumber = 2; pageNumber <= pageCount; pageNumber++) {
         const savedAdvertsData = await this._getSavedAdvertsData(pageNumber)
         savedAdverts.add(savedAdvertsData.map((i, el) => {
           return new SavedAdvert(el)
@@ -190,11 +190,14 @@ class AutoTraderScraper {
     }
   }
 
-  async _searchFor(criteria, type) {
+  async _searchFor(type, options) {
     try {
-      if (!criteria) throw 'MissingSearchCriteria'
-      if (!criteria) throw 'MissingSearchType'
-      const search = new Search({ criteria, type })
+      if (!options) throw 'MissingSearchOptions'
+      if (!options.criteria) throw 'MissingSearchCriteria'
+      if (!type) throw 'MissingSearchType'
+      const criteria = options.criteria
+      delete options.criteria
+      const search = new Search({ type, criteria, ...options })
       const results = await search.execute()
       return results
     } catch(e) {
@@ -421,6 +424,8 @@ class Search {
         this.type = options.type ? options.type.toLowerCase().replace(/s$/, '') : 'car'
         const VALID_TYPES =['car', 'van', 'bike']
         if (!VALID_TYPES.includes(this.type)) throw 'InvalidSearchType'
+        if (options.resultsToGet) this.pagesToGet = this._convertResultsToGetToPages(options.resultsToGet)
+        else if (options.pagesToGet) this.pagesToGet = options.pagesToGet
       }
       if (options.prebuiltURL) this.prebuiltURL = options.prebuiltURL
     } catch(e) {
@@ -523,21 +528,46 @@ class Search {
     }
   }
 
+  _convertResultsToGetToPages(resultsToGet) {
+    const divided = Math.trunc(resultsToGet/13)
+    const remainder = resultsToGet % 13
+    if (remainder === 0) return divided
+    else return divided + 1
+  }
+
   async execute() {
     try {
       const searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
       if (!searchURL) throw('InvalidSearchURL')
-      const content = await fetch(searchURL)
-        .then(res => res.text())
-        .then((body) => {
-          return body
-        })
-      if (!content) throw('FailedToRetrieveSearchResults')
-      const $ = cheerio.load(content)
-      const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
-      return new ListingCollection($('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
-        return new Listing(el)
-      }).get())
+      const listings = new ListingCollection()
+      if (this.pagesToGet) {
+        for (let pageNumber = 1; pageNumber <= this.pagesToGet; pageNumber++) {
+          const content = await fetch(searchURL + `&page=${pageNumber}`)
+            .then(res => res.text())
+            .then((body) => {
+              return body
+            })
+          if (!content) throw('FailedToRetrieveSearchResults')
+          const $ = cheerio.load(content)
+          const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
+          $('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
+            listings.add(new Listing(el))
+          }).get()
+        }
+      } else {
+        const content = await fetch(searchURL)
+          .then(res => res.text())
+          .then((body) => {
+            return body
+          })
+        if (!content) throw('FailedToRetrieveSearchResults')
+        const $ = cheerio.load(content)
+        const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
+        $('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
+          listings.add(new Listing(el))
+        }).get()
+      }
+      return listings
     } catch(e) {
       throw e
     }
@@ -1103,8 +1133,22 @@ class Listing {
 class ListingCollection {
   constructor(listings) {
     try {
+      this.listings = listings ? listings : []
+    } catch(e) {
+      throw e
+    }
+  }
+
+  add(listings) {
+    try {
       if (!listings) throw 'MissingListings'
-      this.listings = listings
+      if (Array.isArray(listings)) {
+        for (let listing of listings) {
+          this.listings.push(listing)
+        }
+      } else {
+        this.listings.push(listings)
+      }
     } catch(e) {
       throw e
     }
