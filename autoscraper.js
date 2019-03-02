@@ -137,7 +137,7 @@ class AutoTraderScraper {
           return document.body.innerHTML
         })
         const $ = cheerio.load(content)
-        return new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
+        return new SavedAdverts($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
           return new SavedAdvert(el)
         }).get())
     } catch(e) {
@@ -175,7 +175,7 @@ class AutoTraderScraper {
         })
       const $ = cheerio.load(content)
       const pageCount = $('.paginator__link--last').attr('href')[$('.paginator__link--last').attr('href').length -1]
-      const savedAdverts = new SavedAdvertCollection($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
+      const savedAdverts = new SavedAdverts($('ul.saved-advert__results-list').find('li').find('div.saved-advert').map((i, el) => {
         return new SavedAdvert(el)
       }).get())
       for (let pageNumber = 2; pageNumber <= pageCount; pageNumber++) {
@@ -299,52 +299,6 @@ class AutoTraderScraper {
       return dealer
     } catch(e) {
       throw e
-    }
-  }
-}
-
-class SavedAdvertCollection {
-  constructor(savedAdverts) {
-    try {
-      if (!savedAdverts) throw 'MissingSavedAdverts'
-      this.savedAdverts = savedAdverts ? savedAdverts : []
-    } catch(e) {
-      throw e
-    }
-  }
-
-  add(savedAdverts) {
-    try {
-      if (!savedAdverts) throw 'MissingSavedAdvert'
-      if (Array.isArray(savedAdverts)) {
-        for (let savedAdvert of savedAdverts) {
-          this.savedAdverts.push(savedAdvert)
-        }
-      } else {
-        this.savedAdverts.push(savedAdvert)
-      }
-    } catch(e) {
-      throw e
-    }
-  }
-
-  get literals() {
-    try {
-      return this.savedAdverts.map((savedAdvert) => {
-        return savedAdvert.literal
-      })
-    } catch(e) {
-      throw e
-    }
-  }
-
-  get json() {
-    try {
-      return this.savedAdverts.map((savedAdvert) => {
-        return savedAdvert.json
-      })
-    } catch(e) {
-
     }
   }
 }
@@ -539,7 +493,7 @@ class Search {
     try {
       const searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
       if (!searchURL) throw('InvalidSearchURL')
-      const listings = new ListingCollection()
+      const listings = new Listings()
       if (this.pagesToGet) {
         for (let pageNumber = 1; pageNumber <= this.pagesToGet; pageNumber++) {
           const content = await fetch(searchURL + `&page=${pageNumber}`)
@@ -1130,24 +1084,20 @@ class Listing {
   }
 }
 
-class ListingCollection {
-  constructor(listings) {
-    try {
-      this.listings = listings ? listings : []
-    } catch(e) {
-      throw e
-    }
+class Collection {
+  constructor(entries) {
+    this.data = entries ? entries : []
   }
 
-  add(listings) {
+  add(entry) {
     try {
-      if (!listings) throw 'MissingListings'
-      if (Array.isArray(listings)) {
-        for (let listing of listings) {
-          this.listings.push(listing)
+      if (!entry) throw 'MissingEntry'
+      if (Array.isArray(entry)) {
+        for (let e of entry) {
+          this.data.push(e)
         }
       } else {
-        this.listings.push(listings)
+        this.data.push(entry)
       }
     } catch(e) {
       throw e
@@ -1155,15 +1105,27 @@ class ListingCollection {
   }
 
   get literals() {
-    return this.listings.map((listing) => {
-      return listing.literal
+    return this.data.map((entry) => {
+      return entry.literal
     })
   }
 
   get json() {
-    return this.listings.map((listing) => {
-      return listing.json
+    return this.data.map((entry) => {
+      return entry.json
     })
+  }
+}
+
+class Listings extends Collection {
+  constructor(listings) {
+    super(listings)
+  }
+}
+
+class SavedAdverts extends Collection {
+  constructor(savedAdverts) {
+    super(savedAdverts)
   }
 }
 
