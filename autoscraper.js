@@ -311,19 +311,23 @@ class SavedAdvert {
       if (!this.$('div.saved-advert').attr('class').includes('saved-advert--expired')) {
         this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
         this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
-        this.price = this.$('.saved-advert__results-price').first().text()
+        this.price = this._cleanPrice(this.$('.saved-advert__results-price').first().text())
         this.image = this.$('.saved-advert__image').length > 0 ? this.$('.saved-advert__image').css('background-image') : null
         this.expired = false
       } else {
         this.baseURL = null
         this.title = this.$('.saved-advert__results-title').text().replace(/\n/g, '').trim()
-        this.price = this.$('.saved-advert__results-price').first().text()
+        this.price = this._cleanPrice(this.$('.saved-advert__results-price').first().text())
         this.image = null
         this.expired = true
       }
     } catch(e) {
       throw e
     }
+  }
+
+  _cleanPrice(price) {
+    return parseInt(price.replace(/[\D]/g, ''))
   }
 
   _getCleanURL() {
@@ -760,7 +764,7 @@ class Advert {
   _getUsedCarData() {
     try {
       this.title = this.$('.advert-heading__title').text()
-      this.price = this.$('.advert-price__cash-price').text()
+      this.price = this._cleanPrice(this.$('.advert-price__cash-price').text())
       this.description = this.$('.fpa__description').text()
       this.images = this._getImages()
       this.rating = {
@@ -783,7 +787,7 @@ class Advert {
   _getNewCarData() {
     try {
       this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
-      this.price = this.$('div.detailsdeal').find('.atc-type-phantom').text()
+      this.price = this._cleanPrice(this.$('div.detailsdeal').find('.atc-type-phantom').text())
       this.images = this._getImages()
       this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
@@ -797,6 +801,10 @@ class Advert {
     } catch(e) {
       throw e
     }
+  }
+
+  _cleanPrice(price) {
+    return parseInt(price.replace(/[\D]/g, ''))
   }
 
   // TODO: Currently only grabs the first two images as they are pulled from the server once the user clicks through the gallery. Find a way around this.
@@ -1035,18 +1043,30 @@ class Listing {
       this.$ = cheerio.load(node)
       this.baseURL = 'https://autotrader.co.uk' + this.$('.listing-title').find('a').attr('href')
       this.title = this.$('.listing-title').text().replace(/\n/g, '').trim()
-      this.price = this.$('.vehicle-price').first().text()
+      this.price = this._cleanPrice(this.$('.vehicle-price').first().text())
       this.image = this.$('.listing-main-image').find('img').attr('src')
       if (!/^http/.test(this.image)) this.image = 'https://www.autotrader.co.uk' + this.image
       this.keySpecs = this.$('.listing-key-specs ').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
       }).get()
+      if (this.keySpecs.filter(el => el.indexOf('miles') > -1)[0]) {
+        this.mileage = this._cleanMileage(this.keySpecs.filter(el => el.indexOf('miles') > -1)[0])
+      } else {
+        this.mileage = null
+      }
       this.description = this.$('.listing-description').text()
       this.location = this.$('.seller-location').text().replace(/\n/g, '').trim()
     } catch(e) {
       throw e
     }
+  }
 
+  _cleanMileage(miles) {
+    return parseInt(miles.replace(/[\D]/g, ''))
+  }
+
+  _cleanPrice(price) {
+    return parseInt(price.replace(/[\D]/g, ''))
   }
 
   _getCleanURL() {
@@ -1155,7 +1175,7 @@ class Dealer {
           return {
             link: card.find('a').attr('href'),
             image: card.find('.p-card__image-mask').find('img').attr('src'),
-            price: card.find('.p-card__header-title').text(),
+            price: this._cleanPrice(card.find('.p-card__header-title').text()),
             title: card.find('.p-card__section').find('p-card__sub-title').text(),
             description: card.find('.p-card__desc').text()
           }
@@ -1169,6 +1189,10 @@ class Dealer {
     } catch(e) {
       throw e
     }
+  }
+
+  _cleanPrice(price) {
+    return parseInt(price.replace(/[\D]/g, ''))
   }
 
   _getCleanURL() {
