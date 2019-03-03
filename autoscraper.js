@@ -198,8 +198,7 @@ class AutoTraderScraper {
       const criteria = options.criteria
       delete options.criteria
       const search = new Search({ type, criteria, ...options })
-      const results = await search.execute()
-      return results
+      return await search.execute()
     } catch(e) {
       throw e
     }
@@ -209,8 +208,7 @@ class AutoTraderScraper {
     try {
       if (!prebuiltURL) throw 'MissingPrebuiltURL'
       const search = new Search({ prebuiltURL })
-      const results = await search.execute()
-      return results
+      return await search.execute()
     } catch(e) {
       throw e
     }
@@ -497,7 +495,8 @@ class Search {
     try {
       const searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
       if (!searchURL) throw('InvalidSearchURL')
-      const listings = new Listings()
+      this.results = new Listings()
+      let resultCount = 0
       if (this.pagesToGet) {
         for (let pageNumber = 1; pageNumber <= this.pagesToGet; pageNumber++) {
           const content = await fetch(searchURL + `&page=${pageNumber}`)
@@ -507,9 +506,9 @@ class Search {
             })
           if (!content) throw('FailedToRetrieveSearchResults')
           const $ = cheerio.load(content)
-          const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
+          resultCount = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
           $('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
-            listings.add(new Listing(el))
+            this.results.add(new Listing(el))
           }).get()
         }
       } else {
@@ -520,15 +519,44 @@ class Search {
           })
         if (!content) throw('FailedToRetrieveSearchResults')
         const $ = cheerio.load(content)
-        const numOfListings = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
+        resultCount = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
         $('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
-          listings.add(new Listing(el))
+          this.results.add(new Listing(el))
         }).get()
       }
-      return listings
+      return new SearchResult(this.results, resultCount)
     } catch(e) {
       throw e
     }
+  }
+}
+
+class SearchResult {
+  constructor(listings, resultCount) {
+    this.listings = listings
+    this.date = {
+      string: Date().toString(),
+      int: Date()
+    }
+    this.average = {
+      price: this.listings.averagePrice,
+      mileage: this.listings.averageMileage
+    }
+    this.resultCount = resultCount
+  }
+
+  // Aliases
+  get count() {
+    return this.resultCount
+  }
+  get length() {
+    return this.resultCount
+  }
+  get literals() {
+    return this.listings.literals
+  }
+  get json() {
+    return this.listings.json
   }
 }
 
