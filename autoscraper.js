@@ -1124,6 +1124,27 @@ class Collection {
     }
   }
 
+  get averagePrice() {
+    let total = 0
+    for (let entry of this.data) {
+      total += entry.price
+    }
+    return Math.round(total / this.data.length)
+  }
+
+  // TODO: Double check accuracy
+  get averageMileage() {
+    let total = 0
+    for (let entry of this.data) {
+      total += entry.mileage
+    }
+    return Math.round(total / this.data.length)
+  }
+
+  get length() {
+    return this.data.length
+  }
+
   get literals() {
     return this.data.map((entry) => {
       return entry.literal
