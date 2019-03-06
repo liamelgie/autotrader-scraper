@@ -1281,4 +1281,11 @@ class Dealer {
   }
 }
 
+class ATSError extends Error {
+  constructor(...args) {
+    super(...args)
+    Error.captureStackTrace(this, ATSError)
+  }
+}
+
 module.exports = AutoTraderScraper
