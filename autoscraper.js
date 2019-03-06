@@ -41,7 +41,7 @@ class AutoTraderScraper {
 
   async login(credentials) {
     try {
-      if (!credentials) throw 'MissingAccountCredentials'
+      if (!credentials) throw new ATSError('Missing Parameter: Account Credentials')
       await nightmare
         .goto('https://www.autotrader.co.uk/secure/signin')
         .wait('input#user-email-sign-in')
@@ -58,7 +58,7 @@ class AutoTraderScraper {
         })
         .then((evalResult) => {
           if (!evalResult) {
-            throw 'InvalidAccountCredentials'
+            throw new ATSError('Account Error: Incorrect Credentials')
           } else {
             nightmare.wait(() => {
               return window.location.href !== 'https://www.autotrader.co.uk/secure/signin'
@@ -89,8 +89,8 @@ class AutoTraderScraper {
 
   async _saveAdvert(url) {
     try {
-      if (!url) throw 'MissingAdvertURL'
-      if (!this.loggedIn) throw 'NotLoggedIn'
+      if (!url) throw new ATSError('Missing Parameter: Advert URL')
+      if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const saved = await nightmare
         .goto(url)
         .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
@@ -108,8 +108,8 @@ class AutoTraderScraper {
 
   async _unsaveAdvert(url) {
     try {
-      if (!url) throw 'MissingAdvertURL'
-      if (!this.loggedIn) throw 'NotLoggedIn'
+      if (!url) throw new ATSError('Missing Parameter: Advert URL')
+      if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const unsaved = await nightmare
         .goto(url)
         .wait('#app > main > article > div.fpa__wrapper.fpa__flex-container.fpa__content > article > div.advert-interaction-panel.fpa__interaction-panel > button.save-compare-advert.advert-interaction-panel__item.save-compare-advert--has-compare.atc-type-smart.atc-type-smart--medium')
@@ -128,7 +128,7 @@ class AutoTraderScraper {
   // Refactor into something cleaner
   async _getSavedAdverts(options) {
     try {
-      if (!this.loggedIn) throw 'NotLoggedIn'
+      if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const pageParam = options.page ? `?page=${options.page}` : ''
       const content = await nightmare
         .goto(`https://www.autotrader.co.uk/secure/saved-recent${pageParam}`)
@@ -148,7 +148,7 @@ class AutoTraderScraper {
   // Refactor into something cleaner
   async _getSavedAdvertsData(pageNumber) {
     try {
-      if (!this.loggedIn) throw 'NotLoggedIn'
+      if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const pageParam = pageNumber ? `?page=${pageNumber}` : ''
       const content = await nightmare
         .goto(`https://www.autotrader.co.uk/secure/saved-recent${pageParam}`)
@@ -166,7 +166,7 @@ class AutoTraderScraper {
   // Refactor into something cleaner
   async _getAllSavedAdverts() {
     try {
-      if (!this.loggedIn) throw 'NotLoggedIn'
+      if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const content = await nightmare
         .goto(`https://www.autotrader.co.uk/secure/saved-recent`)
         .wait('#app > main > section > div > div.tabs__tab.tabs__tab--active > section > div > section > ul')
@@ -192,9 +192,9 @@ class AutoTraderScraper {
 
   async _searchFor(type, options) {
     try {
-      if (!options) throw 'MissingSearchOptions'
-      if (!options.criteria) throw 'MissingSearchCriteria'
-      if (!type) throw 'MissingSearchType'
+      if (!type) throw new ATSError('Missing Parameter: Search Type')
+      if (!options) throw new ATSError('Missing Parameter: Search Options')
+      if (!options.criteria) throw new ATSError('Missing Parameter: Search Criteria')
       const criteria = options.criteria
       delete options.criteria
       const search = new Search({ type, criteria, ...options })
@@ -206,7 +206,7 @@ class AutoTraderScraper {
 
   async _getListings(prebuiltURL) {
     try {
-      if (!prebuiltURL) throw 'MissingPrebuiltURL'
+      if (!prebuiltURL) throw new ATSError('Missing Parameter: Prebuilt Search URL')
       const search = new Search({ prebuiltURL })
       return await search.execute()
     } catch(e) {
@@ -216,7 +216,7 @@ class AutoTraderScraper {
 
   async _getAdvert(url) {
     try {
-      if (!url) throw 'MissingAdvertURL'
+      if (!url) throw new ATSError('Missing Parameter: Advert URL')
       const condition = (/https:\/\/(www.)?autotrader.co.uk\/classified\/advert\/new\/[0-9]+/.test(url)) ? 'New' : 'Used'
       return condition === 'Used' ? this._getUsedCarAdvert(url) : this._getNewCarAdvert(url)
     } catch(e) {
@@ -227,7 +227,7 @@ class AutoTraderScraper {
   async _getUsedCarAdvert(url) {
     // TODO: Allow the user to specify data to ignore to speed up retrieval times by removing waits
     try {
-      if (!url) throw 'MissingAdvertURL'
+      if (!url) throw new ATSError('Missing Parameter: Advert URL')
       await nightmare
         .goto(url)
         .wait('div.fpa__wrapper')
@@ -259,7 +259,7 @@ class AutoTraderScraper {
 
   async _getNewCarAdvert(url) {
     try {
-      if (!url) throw 'MissingAdvertURL'
+      if (!url) throw new ATSError('Missing Parameter: Advert URL')
       await nightmare
         .goto(url)
         .wait('.non-fpa-stock-page')
@@ -283,7 +283,7 @@ class AutoTraderScraper {
 
   async _getDealer(url) {
     try {
-      if (!url) throw 'MissingDealerURL'
+      if (!url) throw new ATSError('Missing Parameter: Dealer URL')
       await nightmare
         .goto(url)
         .wait('#content > header > section > section > section > div:nth-child(3) > div > div > div > p')
@@ -304,7 +304,7 @@ class AutoTraderScraper {
 class SavedAdvert {
   constructor(node) {
     try {
-      if (!node) throw 'MissingAdvertNode'
+      if (!node) throw new ATSError('Missing Parameter: Advert Node')
       this.$ = cheerio.load(node)
       if (!this.$('div.saved-advert').attr('class').includes('saved-advert--expired')) {
         this.baseURL = 'https://autotrader.co.uk' + this.$('.saved-advert__results-title-link').attr('href')
@@ -332,7 +332,7 @@ class SavedAdvert {
     try {
       if (this.baseURL === null) return null
       const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
-      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      if (!cleanURL) throw new ATSError('Invalid Variable: Base Advert URL')
       else return cleanURL
     } catch(e) {
       throw e
@@ -343,7 +343,7 @@ class SavedAdvert {
     try {
       if (this.image === null) return null
       const cleanImageURL = this.image.match(/https[^"]+/g)[0]
-      if (!cleanImageURL) throw 'InvalidAdvertImageURLToClean'
+      if (!cleanImageURL) throw new ATSError('Invalid Variable: Base Advert Image URL')
       return cleanImageURL
     } catch(e) {
       throw e
@@ -374,12 +374,12 @@ class SavedAdvert {
 class Search {
   constructor(options) {
     try {
-      if (!options) throw 'MissingSearchOptions'
+      if (!options) throw new ATSError('Missing Parameter: Search Options')
       this.criteria = options.criteria ? options.criteria : {}
       if (options.criteria) {
         this.type = options.type ? options.type.toLowerCase().replace(/s$/, '') : 'car'
         const VALID_TYPES =['car', 'van', 'bike']
-        if (!VALID_TYPES.includes(this.type)) throw 'InvalidSearchType'
+        if (!VALID_TYPES.includes(this.type)) throw new ATSError('Invalid Parameter: Search Type')
         if (options.resultsToGet) this.pagesToGet = this._convertResultsToGetToPages(options.resultsToGet)
         else if (options.pagesToGet) this.pagesToGet = options.pagesToGet
       }
@@ -391,7 +391,7 @@ class Search {
 
   _buildSearchURL() {
     try {
-      if (!this.criteria.location.postcode) throw('MissingLocationPostcode')
+      if (!this.criteria.location.postcode) throw new ATSError('Missing Parameter: Location/s Postcode'')
       const radius = this.criteria.location.radius ? new Criteria('radius', this.criteria.location.radius) : null
       const postcode = this.criteria.location.postcode ? new Criteria('postcode', this.criteria.location.postcode) : null
       const condition = this.criteria.condition ? new Criteria('condition', this.criteria.condition) : null
@@ -441,7 +441,7 @@ class Search {
 
   set criteria(newCriteria) {
     try {
-      if (!newCriteria) throw 'MissingNewCriteraToSet'
+      if (!newCriteria) throw new ATSError('Missing Parameter: Criteria')
       if (this._criteria) {
         const oldCriteria = this._criteria
         this._criteria = Object.assign(oldCriteria, newCriteria)
@@ -463,7 +463,7 @@ class Search {
 
   set prebuiltURL(url) {
     try {
-      if (!url) throw 'MissingPrebuiltURLToSet'
+      if (!url) throw new ATSError('Missing Parameter: Prebuilt URL')
       if (this._validatePrebuiltURL(url)) this._prebuiltURL = url
       else this._prebuiltURL = false
     } catch(e) {
@@ -494,7 +494,7 @@ class Search {
   async execute() {
     try {
       const searchURL = this.prebuiltURL ? this.prebuiltURL : this.url
-      if (!searchURL) throw('InvalidSearchURL')
+      if (!searchURL) throw new ATSError('Invalid Variable: Search URL')
       this.results = new Listings()
       let resultCount = 0
       if (this.pagesToGet) {
@@ -504,7 +504,7 @@ class Search {
             .then((body) => {
               return body
             })
-          if (!content) throw('FailedToRetrieveSearchResults')
+          if (!content) throw new ATSError('Unknown: Couldn\'t Retrieve Results')
           const $ = cheerio.load(content)
           resultCount = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
           $('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
@@ -517,7 +517,7 @@ class Search {
           .then((body) => {
             return body
           })
-        if (!content) throw('FailedToRetrieveSearchResults')
+        if (!content) throw new ATSError('Unknown: Couldn\'t Retrieve Results')
         const $ = cheerio.load(content)
         resultCount = $('h1.search-form__count').text().replace(/,/g, '').match(/^[0-9]+/)[0]
         $('li.search-page__result').filter((i, el) => $(el).attr('id')).map((i, el) => {
@@ -563,8 +563,8 @@ class SearchResult {
 class Criteria {
   constructor(type, value) {
     try {
-      if (!type) throw 'MissingCriteriaType'
-      if (!value) throw 'MissingCriteriaValue'
+      if (!type) throw new ATSError('Missing Parameter: Criteria Type')
+      if (!value) throw new ATSError('Missing Parameter: Criteria Value')
       this.type = type
       this.value = value
     } catch(e) {
@@ -776,8 +776,8 @@ class Advert {
     try {
       if (!node) throw 'MissingAdvertNode'
       if (!options || !options.condition || !options.url) {
-        if (!options.condition) throw 'MissingAdvertCondition'
-        if (!options.url) throw 'MissingAdvertURL'
+        if (!options.condition) throw new ATSError('Missing Parameter: Advert Condition')
+        if (!options.url) throw new ATSError('Missing Parameter: Advert URL')
       }
       this.$ = cheerio.load(node)
       this.condition = options.condition
@@ -1003,8 +1003,8 @@ class Advert {
 
   _getCleanURL() {
     try {
-      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/)[0]
-      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+      if (!cleanURL) throw new ATSError('Invalid Variable: Base Advert URL')
       else return cleanURL
     } catch(e) {
       throw e
@@ -1100,7 +1100,7 @@ class Listing {
   _getCleanURL() {
     try {
       const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
-      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      if (!cleanURL) throw new ATSError('Invalid Variable: Base Advert URL')
       else return cleanURL
     } catch(e) {
       throw e
@@ -1139,7 +1139,7 @@ class Collection {
 
   add(entry) {
     try {
-      if (!entry) throw 'MissingEntry'
+      if (!entry) throw new ATSError('Missing Parameter: New Entry')
       if (Array.isArray(entry)) {
         for (let e of entry) {
           this.data.push(e)
@@ -1201,8 +1201,8 @@ class SavedAdverts extends Collection {
 class Dealer {
   constructor(node, url) {
     try {
-      if (!node) throw 'MissingDealerNode'
-      if (!url) throw 'MissingDealerURL'
+      if (!node) throw new ATSError('Missing Parameter: Dealer Node')
+      if (!url) throw new ATSError('Missing Parameter: Dealer URL')
       this.$ = cheerio.load(node)
       this.baseURL = url
       this.name = this.$('.dealer__title').text()
@@ -1246,8 +1246,8 @@ class Dealer {
 
   _getCleanURL() {
     try {
-      const cleanURL = this.baseURL.replace(/\?.+$/, '')
-      if (!cleanURL) throw 'InvalidAdvertURLToClean'
+      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+      if (!cleanURL) throw new ATSError('Invalid Variable: Base Advert URL')
       else return cleanURL
     } catch(e) {
       throw e
