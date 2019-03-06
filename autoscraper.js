@@ -391,7 +391,7 @@ class Search {
 
   _buildSearchURL() {
     try {
-      if (!this.criteria.location.postcode) throw new ATSError('Missing Parameter: Location/s Postcode'')
+      if (!this.criteria.location.postcode) throw new ATSError('Missing Parameter: Location\'s Postcode')
       const radius = this.criteria.location.radius ? new Criteria('radius', this.criteria.location.radius) : null
       const postcode = this.criteria.location.postcode ? new Criteria('postcode', this.criteria.location.postcode) : null
       const condition = this.criteria.condition ? new Criteria('condition', this.criteria.condition) : null
