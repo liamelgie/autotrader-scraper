@@ -695,7 +695,8 @@ class Criteria {
         return `&only-writeoff-categories=on`
         break
       case 'customKeywords':
-        return `&keywords=${encodeURIComponent(this.value)}`
+        if (typeof this.value === 'object') return `&keywords=${this.value.map((c) => { return encodeURIComponent(`${c} `) }).join('')}`
+        else return `&keywords=${encodeURIComponent(this.value)}`
         break
       case 'page':
         return `&page=${this.value}`
