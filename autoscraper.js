@@ -542,7 +542,7 @@ class Search {
           this.results.add(new Listing(el))
         }).get()
       }
-      return new SearchResult(this.results, resultCount)
+      return new SearchResult(this.results, resultCount, searchURL)
     } catch(e) {
       throw e
     }
@@ -550,7 +550,8 @@ class Search {
 }
 
 class SearchResult {
-  constructor(listings, searchResultCount) {
+  constructor(listings, searchResultCount, searchURL) {
+    this.url = searchURL
     this.listings = listings
     this.date = {
       string: Date().toString(),
