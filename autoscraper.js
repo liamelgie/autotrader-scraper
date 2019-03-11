@@ -39,7 +39,7 @@ class AutoTraderScraper {
     }
   }
 
-  accountFeaturesDisabledMessage() {
+  _accountFeaturesDisabledMessage() {
     console.error('Account-based features are currently broken due to AutoTrader.co.uk changes')
     console.error('These include: logging in, logging out, saving/unsaving of adverts and the retrieval of saved adverts')
     throw new ATSError('Account Features Disabled')
@@ -48,7 +48,7 @@ class AutoTraderScraper {
   async login(credentials) {
     try {
       // Broken account features message
-      this.accountFeaturesDisabledMessage()
+      this._accountFeaturesDisabledMessage()
       if (!credentials) throw new ATSError('Missing Parameter: Account Credentials')
       await nightmare
         .goto('https://www.autotrader.co.uk/secure/signin')
@@ -83,7 +83,7 @@ class AutoTraderScraper {
   async logout() {
     try {
       // Broken account features message
-      this.accountFeaturesDisabledMessage()
+      this._accountFeaturesDisabledMessage()
       await nightmare
         .goto('https://www.autotrader.co.uk/user/signout')
         .wait(1000)
@@ -119,7 +119,7 @@ class AutoTraderScraper {
   async _unsaveAdvert(url) {
     try {
       // Broken account features message
-      this.accountFeaturesDisabledMessage()
+      this._accountFeaturesDisabledMessage()
       if (!url) throw new ATSError('Missing Parameter: Advert URL')
       if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const unsaved = await nightmare
@@ -141,7 +141,7 @@ class AutoTraderScraper {
   async _getSavedAdverts(options) {
     try {
       // Broken account features message
-      this.accountFeaturesDisabledMessage()
+      this._accountFeaturesDisabledMessage()
       if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const pageParam = options.page ? `?page=${options.page}` : ''
       const content = await nightmare
@@ -163,7 +163,7 @@ class AutoTraderScraper {
   async _getSavedAdvertsData(pageNumber) {
     try {
       // Broken account features message
-      this.accountFeaturesDisabledMessage()
+      this._accountFeaturesDisabledMessage()
       if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const pageParam = pageNumber ? `?page=${pageNumber}` : ''
       const content = await nightmare
@@ -183,7 +183,7 @@ class AutoTraderScraper {
   async _getAllSavedAdverts() {
     try {
       // Broken account features message
-      this.accountFeaturesDisabledMessage()
+      this._accountFeaturesDisabledMessage()
       if (!this.loggedIn) throw new ATSError('Account Error: Not Logged In')
       const content = await nightmare
         .goto(`https://www.autotrader.co.uk/secure/saved-recent`)
@@ -550,7 +550,7 @@ class Search {
 }
 
 class SearchResult {
-  constructor(listings, resultCount) {
+  constructor(listings, searchResultCount) {
     this.listings = listings
     this.date = {
       string: Date().toString(),
@@ -560,15 +560,16 @@ class SearchResult {
       price: this.listings.averagePrice,
       mileage: this.listings.averageMileage
     }
-    this.resultCount = resultCount
+    this.searchResultCount = searchResultCount
+    this.retrievedResultCount = this.listings.length
   }
 
   // Aliases
   get count() {
-    return this.resultCount
+    return this.retrievedResultCount
   }
   get length() {
-    return this.resultCount
+    return this.retrievedResultCount
   }
   get literals() {
     return this.listings.literals
