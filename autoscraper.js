@@ -398,8 +398,8 @@ class Search {
         this.type = options.type ? options.type.toLowerCase().replace(/s$/, '') : 'car'
         const VALID_TYPES =['car', 'van', 'bike']
         if (!VALID_TYPES.includes(this.type)) throw new ATSError('Invalid Parameter: Search Type')
-        if (options.resultsToGet) this.pagesToGet = this._convertResultsToGetToPages(options.resultsToGet)
-        else if (options.pagesToGet) this.pagesToGet = options.pagesToGet
+        if (options.results) this.pagesToGet = this._convertResultsToPages(options.results)
+        else if (options.pages) this.pagesToGet = options.pages
       }
       if (options.prebuiltURL) this.prebuiltURL = options.prebuiltURL
     } catch(e) {
@@ -502,9 +502,9 @@ class Search {
     }
   }
 
-  _convertResultsToGetToPages(resultsToGet) {
-    const divided = Math.trunc(resultsToGet/13)
-    const remainder = resultsToGet % 13
+  _convertResultsToPages(results) {
+    const divided = Math.trunc(results/13)
+    const remainder = results % 13
     if (remainder === 0) return divided
     else return divided + 1
   }
