@@ -143,8 +143,8 @@ Retrieve your account's saved adverts via the following:
 
 ### Criteria
 
-| Key |Definition | Validation|
-|--|--|--|--|
+| Key | Definition | Validation |
+|:---:|---|---|
 |`location.radius`|The maximum distance from the given postcode (in miles)|Integers|
 |`location.postcode`|The postcode in which to centre the search from|String|
 |`condition`|The vehicle's condition|`New`, `Nearly New`, `Used`|
