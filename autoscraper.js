@@ -601,8 +601,12 @@ class Criteria {
         return `&postcode=${this.value.toLowerCase()}`
         break
       case 'condition':
-        if (typeof this.value === 'object') return this.value.map((c) => { return `&onesearchad=${encodeURIComponent(c)}` }).join('')
-        else `&onesearchad=${encodeURIComponent(this.value)}`
+        if (this.validate()) {
+          if (typeof this.value === 'object') return this.value.map((c) => { return `&onesearchad=${encodeURIComponent(c)}` }).join('')
+          else return `&onesearchad=${encodeURIComponent(this.value)}`
+        } else {
+          return ''
+        }
         break
       case 'minPrice':
         return this.validate() ? `&price-from=${this.value}` : ''
@@ -717,6 +721,17 @@ class Criteria {
       case 'maxMileage':
       case 'page':
         return /[0-9]+/.test(this.value)
+        break
+      case 'condition':
+      const VALID_CONDITIONS = ['New', 'Nearly New', 'Used']
+        if (typeof this.value === 'object') {
+          for (let condition of this.value) {
+            if (!VALID_CONDITIONS.includes(condition)) throw new ATSError('Invalid Parameter: Vehicle\'s Condition')
+          }
+          return true
+        } else {
+          return VALID_CONDITIONS.includes(this.value)
+        }
         break
       case 'make':
         const VALID_MAKES = ['ABARTH', 'AEON', 'AJP', 'AJS', 'AIXAM', 'ALFA ROMEO', 'APACHE', 'APOLLO', 'APRILIA', 'ARIEL', 'AUDI', 'AUSTIN', 'BEAUFORD', 'BENELLI', 'BENTLEY', 'BETA', 'BIG DOG', 'BIMOTA', 'BMW', 'BROOM TRIKES', 'BRIXTON', 'BROUGH SUPERIOR', 'BSA', 'BUELL', 'BULLIT MOTORCYCLES', 'BULTACO', 'CADILLAC',  'CAGIVA', 'CAN-AM', 'CATERHAM', 'CCM', 'CPI', 'CHEVROLET', 'CHRYSLER', 'CITROEN', 'CUPRA', 'DACIA', 'DAEWOO', 'DAELIM', 'DAF', 'DAIHATSU', 'DAIMLER', 'DERBI', 'DFSK', 'DIRECT BIKE', 'DIRT PRO', 'DODGE', 'DOUGLAS', 'DRESDA', 'DS AUTOMOBILES', 'DUCATI', 'ENERGICA', 'F.B MONDIAL', 'FANTIC', 'FB MONDIAL', 'FERRARI', 'FIAT', 'FORD', 'GAS GAS', 'GENATA', 'GENERIC', 'GHEZZI-BRIAN', 'GILERA', 'GREAT WALL', 'GREEVES', 'GRINNALL', 'HANWAY', 'HARLEY-DAVIDSON', 'HERALD MOTOR CO', 'HESKETH', 'HONDA', 'HUSQVARNA', 'HYOSUNG', 'HYUNDAI', 'INDIAN', 'INFINITI', 'ISUZU', 'JAGUAR', 'JAWA', 'JEEP', 'KAWASAKI', 'KAZUMA', 'KEEWAY', 'KIA', 'KSR MOTO', 'KTM', 'KYMCO', 'LAMBORGINI', 'LAMBRETTA', 'LAND ROVER', 'LAVERDA', 'LDV', 'LEVIS', 'LEXMOTO', 'LEXUS', 'LIFAN', 'LINTEX', 'LML', 'LONGJIA', 'LOTUS', 'M.A.N', 'MAN', 'MAICO', 'MASERATI', 'MASH MOTORCYCLES', 'MATCHLESS',  'MAYBACH', 'MAZDA', 'MCLAREN', 'MERCEDES-BENZ', 'MG', 'MINI', 'MITSUBISHI', 'MONTESA', 'MORGAN', 'MORRIS', 'MORRISON', 'MONTESA', 'MOTO GUZZI', 'MOTO MORINI', 'MOTO PARILLA', 'MOTO-ROMA', 'MOTORINI', 'MUTT', 'MUZ', 'MV AGUSTA', 'MZ', 'NECO', 'NIU', 'NG', 'NISSAN', 'NORTON', 'NSU', 'OPEL', 'OSET', 'OSSA', 'PEUGEOT', 'PIAGGIO', 'PIONEER', 'POLARIS', 'PROTON', 'PULSE', 'QINGQI', 'QUADRO', 'QUADZILLA', 'QUANTUM', 'QUAZZAR', 'RENAULT', 'RIEJU', 'ROLLS-ROYCE', 'ROVER', 'ROYAL ALLOY', 'ROYAL ENFIELD', 'SAAB', 'SACHS', 'SCOMADI', 'SCORPA', 'SEAT', 'SFM', 'SHERCO', 'SIAC', 'SINNIS', 'SKODA', 'SKYTEAM', 'SPY RACING', 'SANTANA', 'SMART', 'SSANGYONG', 'STANDARD', 'STOMP', 'SUBARU', 'SUPERCUB', 'SUZUKI', 'SWM MOTORCYCLES', 'SYM', 'TALBOT', 'TESLA', 'TGB', 'TOMOS', 'TORROT', 'TOYOTA', 'TRIUMPH', 'TVR', 'UM', 'VAUXHALL', 'VELOCIFERO', 'VICTORY', 'VIPER', 'VOLKSWAGEN', 'VOLVO', 'WHITE KNUCKLE', 'WK BIKES', 'YAMAHA', 'ZERO', 'ZHONGYU', 'ZONGSHEN', 'ZONTES', 'ZUNDAPP']
