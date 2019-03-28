@@ -1282,7 +1282,7 @@ class Dealer {
 
   _getCleanURL() {
     try {
-      const cleanURL = this.baseURL.match(/^.+advert\/(new\/)?[0-9]+/g)[0]
+      const cleanURL = this.baseURL.match(/(^.+dealers\/.[^?]+)/g)[0]
       if (!cleanURL) throw new ATSError('Invalid Variable: Base Advert URL')
       else return cleanURL
     } catch(e) {
