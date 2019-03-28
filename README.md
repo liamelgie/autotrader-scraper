@@ -20,6 +20,11 @@ npm i autotrader-scraper --save
 const AutoTraderScraper = require('autotrader-scraper')
 ````
 Don't have node/npm installed? Get it [here](https://nodejs.org/en/)
+## Tests
+Perform core functionality tests via the following:
+````
+npm test
+````
 ## Usage & Examples
 Create an AutoTraderScraper object to begin:
 ````Javascript
