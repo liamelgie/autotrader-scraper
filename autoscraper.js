@@ -1,5 +1,5 @@
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1, waitTimeout: 10000, show: true })
+const nightmare = Nightmare({ useragent: 'AutoTraderScraper', pollInterval: 5, width: 1400, typeInterval: 1, waitTimeout: 10000, show: false })
 const cheerio = require('cheerio')
 const fetch = require('node-fetch')
 
@@ -851,7 +851,7 @@ class Advert {
   _getNewCarData() {
     try {
       this.title = this.$('div.detailsmm').find('.atc-type-phantom').text()
-      this.price = this._cleanPrice(this.$('div.detailsdeal').find('.atc-type-phantom').text())
+      this.price = this._cleanPrice(this.$('div.dealerdeals').find('.mrrp').text())
       this.images = this._getImages()
       this.keySpecs = this.$('.key-specifications').find('li').map((i, el) => {
         return this.$(el).text().replace(/\n/g, '').trim()
