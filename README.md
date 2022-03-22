@@ -1,15 +1,16 @@
 # AutoTrader Scraper
 Scraper for the online vehicle marketplace, [AutoTrader (UK)](https://www.autotrader.co.uk/). Built with Node and makes _**heavy**_ use of [Nightmare.js](https://github.com/segmentio/nightmare) for browser automation.
 
+**❌ Due to recent and ongoing AutoTrader.co.uk changes, this project is now broken and retired. Forking and updating of this codebase is encouraged.**
+
 ⚠️ While run headlessly, Nightmare.js uses Electron to automate a browser window. This requires all of Electron's dependencies to be met which includes various UI focused packages. This may be an issue on various server distros.
 ## Features
 - Perform flexible searches using all site-available criteria
 - Retrieve all significant data from adverts
--  ~~Login to an AutoTrader UK account to access saved adverts~~
+-  Login to an AutoTrader UK account to access saved adverts
 - Retrieve Dealer data and their stock
 - Supports cars, vans and bikes
 
-**❌ Due to recent and ongoing AutoTrader.co.uk changes, account features are currently disabled as of the 3rd of March 2019. These features will be reimplemented when new changes stop being made to the site's account system.**
 ## Installation
 Install [AutoTrader Scraper](https://www.npmjs.com/package/autotrader-scraper) via npm by doing the following:
 ````
